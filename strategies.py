@@ -278,6 +278,12 @@ def generateLX(type, window, day, dates, data, numStocks):
     else:
         print("Error")
         return -1
+
+def MCov(LXk, numStocks, i, j):
+    """
+    Read tomorrow and sort this part out.
+    """
+    pass
 def doAnticorDay(day, dates, data, window, numStocks, currPort):
     """
     Given the parameters of anticor, preform a single anticor trading day.
