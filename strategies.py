@@ -330,9 +330,9 @@ def calcMCov(LX1, LX2, numStocks, window):
         print(flattenedCor[errorsNeg])
     if(len(errorsNeg) == 0 and len(errorsPos) == 0):
         print("Success in calculating Correlation")
-        return MCor
+        return MCor, u2
     # If some error occurred then return -1, so catch this error somewhere
-    return -1
+    return -1, u2
 def averageValuesAnticor(LXk):
     """
     Given an LX, find the average values for each column and return them.
@@ -353,13 +353,22 @@ def doAnticorDay(day, dates, data, window, numStocks, currPort):
     Using the current portfolio change it as it is required and return a new portfolio.
     Note that here day is the current day, dates the array of all days, data is the exchange, numStocks must be passed, currPort will be updated.
     """
+    # Case where not enough data
     if day < 2*window:
         return currPort
-
+    # Enough data so start strategy
     lx1 = generateLX(1, window, day, dates, data, numStocks)
     lx2 = generateLX(2, window, day, dates, data, numStocks) 
-    calcMCov(lx1, lx2, numStocks, window)
+    # Generating MCov as required
+    MCov, u2 = calcMCov(lx1, lx2, numStocks, window)
+    if MCov == -1:
+        print("An error occured in calcMCov, where a value was out of bounds")
+        return -1
+    # Calculate claims
+
+    # Deal with case of u2
     
+    # Create new portfolio based on claims and transfers
 
 data = readDataSet()
 anticorReturns = anticor(data)
