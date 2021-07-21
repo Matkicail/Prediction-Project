@@ -192,27 +192,31 @@ def anticor(data):
     startPrices = data[data['Date'] == startDate]
     numStocks = len(np.unique(startPrices.Ticker.to_numpy()))
     tick = np.unique(startPrices.Ticker.to_numpy())[0]
-    print("Ticker ")
-    print(tick)
+    # print("Ticker ")
+    # print(tick)
     dates = data[data['Ticker'] == tick]
-    print(dates)
+    # print(dates)
     dates = dates.Date.to_numpy()
     propPort = 1 / numStocks
     # getting the init prop of a stock we can own
     # this will assume that this will come out in the right order - which it should
     propOwnedStart = propPort / startPrices.Close.to_numpy()
-    returns = np.array(())
     currPort = propOwnedStart
-    day = 0
-    portHist = np.array(())
-    for i in dates:
-        currPort = doAnticorDay(day, i, window, currPort)
-        day += 1
-        portHist = np.hstack((portHist, np.atleast_2d(currPort).T))
+    portHist = np.empty((numStocks,len(dates)))
+    # print(portHist.shape)
+    for i in range(len(dates)):
+        currPort = doAnticorDay(i, dates, data, window, numStocks, currPort)
+        currPort = np.array(currPort)
+        currPort = currPort.reshape((numStocks,1))
+        for j in range(numStocks):
+            portHist[j][i] = currPort[j]
+        # print(portHist.shape)
+
 
 def marketRelativeVectors(data):
     """
-    
+    Create a market relative vector which records daily price changes based on the previous day to today's change - i.e X_t / X_t-1.
+    It will return this so that you can construct a daily return with a portfolio that continuously changes.
     """
     startDate = data.Date.min()
     startPrices = data[data['Date'] == startDate]
@@ -267,21 +271,26 @@ def generateLX(type, window, day, dates, data, numStocks):
         return LX1
     elif type == 2:
         start = day - window + 1
+        count = 0
         LX2 = np.empty((window,numStocks))
         #get up to the current day
+        # print(day)
+        # print(start + count)
         while start + count <= day:
+            # print("Count in LX2 is " + str(count))
             currDay = data[data['Date'] == dates[start + count]]
             #assuming the order is kept - which it seems to by nature
             currDay = currDay.Close.to_numpy()
             LX2[count][:] = np.log(currDay)
             count +=1
+        return LX2
     else:
         print("Error")
         return -1
 
 def MCov(LXk, numStocks, i, j):
     """
-    Read tomorrow and sort this part out.
+    This is based on equation 3 from the paper by Borodin, El-Yaniv and Gogan.
     """
     pass
 def doAnticorDay(day, dates, data, window, numStocks, currPort):
@@ -295,9 +304,8 @@ def doAnticorDay(day, dates, data, window, numStocks, currPort):
 
     lx1 = generateLX(1, window, day, dates, data, numStocks)
     lx2 = generateLX(2, window, day, dates, data, numStocks) 
-
-
+    
+    
 
 data = readDataSet()
-vals = bestStockStrategy(data)
-ubah(data)
+anticorReturns = anticor(data)
