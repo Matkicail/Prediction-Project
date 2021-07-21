@@ -1,6 +1,7 @@
 from datetime import date
 from os import read
 import numpy as np
+from numpy.core.records import array
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -288,11 +289,64 @@ def generateLX(type, window, day, dates, data, numStocks):
         print("Error")
         return -1
 
-def MCov(LXk, numStocks, i, j):
+def calcMCov(LX1, LX2, numStocks, window):
     """
     This is based on equation 3 from the paper by Borodin, El-Yaniv and Gogan.
     """
-    pass
+    u1 = averageValuesAnticor(LX1)
+    u2 = averageValuesAnticor(LX2)
+    MCov = np.empty((numStocks, numStocks))
+    #Let i index Lx1
+    for i in range(numStocks):
+        #Let j index Lx2
+        for j in range(numStocks):
+            MCov[i][j] = ((LX1[:,i] - u1[i]) @ (LX2[:,j] - u2[j]))/(window - 1)
+    sigma1 = standardDevAnticor(LX1)
+    sigma2 = standardDevAnticor(LX2)
+    print(sigma1.shape)
+    print(sigma2.shape)
+    MCor = np.empty((numStocks, numStocks))
+    for i in range(numStocks):
+        for j in range(numStocks):
+            if sigma1[i] != 0:
+                if sigma2[j] != 0:
+                    MCor[i][j] = MCov[i][j] / (sigma1[i] * sigma2[j])
+                else: 
+                    MCor[i][j] = 0
+            else:
+                MCor[i][j] = 0
+    
+    # Following serves to check that the required criteria - that MCor is always between -1 and 1
+    flattenedCor = MCor.flatten()
+    errorsPos = np.where(flattenedCor > 1)[0]
+    if len(errorsPos) > 0:
+        print("Number of mistakes greater than 1 is " + str(len(errorsPos)))
+        print("Mistakes - greater than 1")
+        print(flattenedCor[errorsPos])
+    errorsNeg = np.where(flattenedCor < -1)[0]
+    if len(errorsNeg) > 0:
+        print("Number of mistakes less than 1 is " + str(len(errorsNeg)))
+        print("Mistakes - less than 1")
+        print(flattenedCor[errorsNeg])
+    if(len(errorsNeg) == 0 and len(errorsPos) == 0):
+        print("Success in calculating Correlation")
+        return MCor
+    # If some error occurred then return -1, so catch this error somewhere
+    return -1
+def averageValuesAnticor(LXk):
+    """
+    Given an LX, find the average values for each column and return them.
+    This only exists as a function to make it a bit more obvious what is being done inside other code segments
+    """
+    return np.mean(LXk, axis=0)
+
+def standardDevAnticor(LXk):
+    """
+    Given an LX, find the average standard deviation for each column and return them.
+    This only exists as a function to make it a bit more obvious what is being done inside other code segments
+    """
+    return np.std(LXk, axis=0)
+
 def doAnticorDay(day, dates, data, window, numStocks, currPort):
     """
     Given the parameters of anticor, preform a single anticor trading day.
@@ -304,7 +358,7 @@ def doAnticorDay(day, dates, data, window, numStocks, currPort):
 
     lx1 = generateLX(1, window, day, dates, data, numStocks)
     lx2 = generateLX(2, window, day, dates, data, numStocks) 
-    
+    calcMCov(lx1, lx2, numStocks, window)
     
 
 data = readDataSet()
