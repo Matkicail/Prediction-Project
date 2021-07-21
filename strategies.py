@@ -347,6 +347,18 @@ def standardDevAnticor(LXk):
     """
     return np.std(LXk, axis=0)
 
+def claimItoJ(MCor, i, j):
+    """
+    Computing the claim - which represents the amount of our investment we wish to shift from asset i to asset j.
+    Ensure that the requirements are met before running this function which are as follows:
+    1) MCor(i,j) > 0
+    2) u2(i) > u2(j)
+    This function will assume that these two criteria have been checked first and validated
+    """
+
+
+    return
+
 def doAnticorDay(day, dates, data, window, numStocks, currPort):
     """
     Given the parameters of anticor, preform a single anticor trading day.
@@ -364,8 +376,8 @@ def doAnticorDay(day, dates, data, window, numStocks, currPort):
     if MCov == -1:
         print("An error occured in calcMCov, where a value was out of bounds")
         return -1
-    # Calculate claims
-
+    # Calculate claims - assuming above works
+    
     # Deal with case of u2
     
     # Create new portfolio based on claims and transfers
