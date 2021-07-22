@@ -4,6 +4,32 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
 
+def initPriceRelativeVec(data, t, dates):
+    """
+    Given a data set at a specific date as indicated by t, which is the index position of the date.
+    It will use the dates vector - of all the dates that have occurred to get a market relative vector
+    """
+    marketToday = data[data['Date'] == dates[t]]
+    marketToday = marketToday.Close.to_numpy()
+    marketYesterday = data[data['Date'] == dates[t-1]]
+    marketYesterday = marketYesterday.Close.to_numpy()
+    return marketToday/marketYesterday
+
+def initMarketMovements(data, window, t, dates, numStocks):
+    """
+    Get a set of market relative vectors - called the market window for the ith trading day.
+    Note that the priceRelatives required to do this are t-w, t-w+1, ... , t-2 , t-1.
+    """
+    count = t - window
+    marketWindow = np.empty((numStocks, (t-1) - (t-window)))
+    i = 0
+    while count < t:
+        # Do stuff
+        marketWindow[i,:] = initPriceRelativeVec(data, count, dates)
+        # Next day
+        count += 1
+        i += 1
+
 def CORNK(data):
     """
     CORN-K strategy as based on by the CORN-K paper Li et al.
