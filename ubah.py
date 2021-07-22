@@ -22,6 +22,8 @@ def ubah(data):
     propPort = 1 / numStocks
     # getting the init prop of a stock we can own
     # this will assume that this will come out in the right order - which it should
+    # Prop owned start acts like the uniform portfolio - in the original capital is divided equally amongst all assets -> 1/numStock
+    # But obviously different percentages of each asset can be bought for this amount, therefore the propOwned will have different percentages
     propOwnedStart = propPort / startPrices.Close.to_numpy()
     returns = np.array(())
     for i in dates:
