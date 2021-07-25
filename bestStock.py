@@ -28,12 +28,12 @@ def bestStockStrategy(data):
     for i in dates:
         currDay = marketData[marketData['Date'] == i]
         returns = np.append(returns, initProp * currDay.Close)
-    plt.ylabel("Multiple of Increase")
-    plt.xlabel("Number of Days Passed")
-    plt.title("Total Return of " + tickers[indexMax])    
-    plt.plot(returns)
-    plt.show()
+    # plt.ylabel("Multiple of Increase")
+    # plt.xlabel("Number of Days Passed")
+    # plt.title("Total Return of " + tickers[indexMax])    
+    # plt.plot(returns)
+    # plt.show()
     return returns
 
-data = readDataSet()
-bestStockStrategy(data)
+# data = readDataSet()
+# bestStockStrategy(data)

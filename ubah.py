@@ -34,11 +34,11 @@ def ubah(data):
             returns = np.append(returns, dayVal)
         except:
             returns = np.append(returns, returns[-1])
-    plt.ylabel("Multiple of Increase")
-    plt.xlabel("Number of Days Passed")
-    plt.plot(returns)
-    plt.show()
+    # plt.ylabel("Multiple of Increase")
+    # plt.xlabel("Number of Days Passed")
+    # plt.plot(returns)
+    # plt.show()
     return returns
 
-data = readDataSet()
-vals = ubah(data)
+# data = readDataSet()
+# vals = ubah(data)

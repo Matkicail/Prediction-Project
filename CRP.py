@@ -36,12 +36,12 @@ def CRP(data):
             except:
                 # print("Error occured")
                 numError +=1 
-    print("Total number of errors " + str(numError))
-    plt.title("CRP")
-    plt.ylabel("Multiple of Increase")
-    plt.xlabel("Number of Days Passed")
-    plt.plot(returns)
-    plt.show()
+    # print("Total number of errors " + str(numError))
+    # plt.title("CRP")
+    # plt.ylabel("Multiple of Increase")
+    # plt.xlabel("Number of Days Passed")
+    # plt.plot(returns)
+    # plt.show()
     return returns
-data = readDataSet()
-crpReturns = CRP(data)
+# data = readDataSet()
+# crpReturns = CRP(data)
