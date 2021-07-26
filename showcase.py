@@ -5,12 +5,12 @@ from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
 from bestStock import bestStockStrategy
 from ubah import ubah
-from CRP import CRP
+from CRP import UCRP
 
 data = readDataSet()
 bestStock = bestStockStrategy(data)
 ubahPort = ubah(data)
-crpPort = CRP(data)
+crpPort = UCRP(data)
 
 plt.title("Comparison of Strategies")
 plt.xlabel("Number of Days")

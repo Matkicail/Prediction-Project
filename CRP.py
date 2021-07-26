@@ -7,10 +7,11 @@ from stockMarketReader import readDataSet
 # Implementing the CRP Portfolio Benchmark #
 # ######################################## #
 
-def CRP(data):
+def UCRP(data):
     """
     A function that given a data set will return a constantly rebalanced portfolio.
     TODO check the JSE returns to make sure this program actually works, feels a bit dodgy on that one for that day.
+    NOTE THIS IS THE UNIFORM CONSTANTLY REBALANCED PORTFOLIO - AS DESCRIBED IN CORN PAPER
     """
     startDate = data.Date.min()
     startPrices = data[data['Date'] == startDate]
