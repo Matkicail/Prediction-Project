@@ -76,17 +76,26 @@ borsaStock = ["AKBNK.IS", "ALARK.IS", "ALKIM.IS", "ARCLK.IS", "ASELS.IS", "BIMAS
                 "TCELL.IS", "HALKB.IS", "ISCTR.IS", "TURSG.IS", "ULKER.IS", "VAKBN.IS", "VESTL.IS",
                 "YKBNK.IS"
             ]
+#need to try and download this but not necessary right now.
+nikkeiStock = ["7203.T", "6861.T", "6758.T", "9984.T", "9432.T", "6098.T", "9433.T", "9983.T",
+                "8306.T", "6594.T", "4063.T", "7974.T", "8035.T", "4519.T", "6367.T", "6501.T",
+                "7267.T", "4502.T", "6902.T", "6981.T", "7741.T", "8316.T", "4661.T", "8001.T",
+                "6954.T", "3382.T", "6273.T", "4689.T", "8316.T", "8411.T", "6702.T", "4568.T",
+                "2914.T", "8766.T", "4503.T", "7182.T", "6178.T", "5108.T", "4612.T", "4543.T",
+                "6503.T", "4901.T", "4452.T", "9022.T", "6752.T", "4911.T", "6201.T", "9020.T",
+                "7733.T", "6326.T"
+            ]
 
 # print("Generating JSE")
 # generateStockCSV("jse40",jseStock)
-# print("Generating S&P 500")
-# generateStockCSV("sp50",SP500Stock)
+print("Generating S&P 500")
+generateStockCSV("sp50",SP500Stock)
 # print("Generating Nasdaq")
 # generateStockCSV("nas50",nasdaqStock)
 # print("Generating EuroStoxx")
 # generateStockCSV("euroStoxx50",euroStoxx50)
 # print("Generating Borsa")
 # generateStockCSV("bist50",borsaStock)
-print("Generating Bovespa")
-generateStockCSV("bovespa30",bovespaStock)
-print("Finished Generation")
+# print("Generating Bovespa")
+# generateStockCSV("bovespa30",bovespaStock)
+# print("Finished Generation")

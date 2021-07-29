@@ -8,9 +8,9 @@ from ubah import ubah
 from CRP import UCRP
 
 data = readDataSet()
-bestStock = bestStockStrategy(data)
-ubahPort = ubah(data)
-crpPort = UCRP(data)
+bestStock = np.log(bestStockStrategy(data))
+ubahPort = np.log(ubah(data))
+crpPort = np.log(UCRP(data))
 
 plt.title("Comparison of Strategies")
 plt.xlabel("Number of Days")
