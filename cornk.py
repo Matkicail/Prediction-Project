@@ -15,15 +15,26 @@ def expertLearn(window, corrThresh, histMarketWind, day):
     This algorithm is the expert learning procedure.
     Given an index date (day), the window (a specified window size), the histMarketWind (t-1 to 1) and the corrThresh which is rho our correlation coeff threshold.
     """
-    corrSimSet = set()
+    corrSimSet = np.array()
     if day <= window + 1:
         return getUniformPort
     else:
         for i in range(window + 1,day): #just check that this works otherwise change it to t
             markWindI = marketWindow(i-window, i-1, dates, data)
             markWindT = marketWindow(day - window, day - 1, dates, data)
+            if np.std(markWindI) == 0 or np.std(markWindT) == 0:
+                corrThresh = 0
             if np.corrcoef(markWindI, marketWindow) >= corrThresh:
-                # append this to our set 
+                # append this to our set i.e add the index
+                corrSimSet = np.append(corrSimSet,i)
+    if len(corrSimSet) == 0:
+        return getUniformPort()
+    else:
+        # Search for the optimal portfolio
+        # so using the i in the set, get the argmax
+        # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
+        pass
+        
 def dayReturn(day, dates, data):
     """
     Given a day, the dates and a dataframe.
