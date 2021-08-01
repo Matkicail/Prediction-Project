@@ -5,6 +5,20 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
 
+# Need to construct a set of experts as required by CORN
+class Expert:
+
+    #constructor for this expert with the two noteworthy parameters
+    def __init__(self, windowSize, corrThresh):
+        self.windowSize = windowSize
+        self.corrThresh = corrThresh
+        self.corrSimSet = None
+    
+    def assignCorrSet(self, corrSet):
+        self.corrSimSet = corrSet
+    
+    
+
 def getUniformPort():
     stocks = np.ones((numStocks))
     return stocks / numStocks
@@ -22,8 +36,11 @@ def expertLearn(window, corrThresh, histMarketWind, day):
         for i in range(window + 1,day): #just check that this works otherwise change it to t
             markWindI = marketWindow(i-window, i-1, dates, data)
             markWindT = marketWindow(day - window, day - 1, dates, data)
-            if np.std(markWindI) == 0 or np.std(markWindT) == 0:
+            # check at some point to ensure that this captures the standard deviation for the whole window (i.e output not something weird)
+            # flattened just to ensure that this does happen
+            if np.std(np.flatten(markWindI)) == 0 or np.std(np.flatten(markWindT)) == 0:
                 corrThresh = 0
+            # may need to change this to the exact calculation they use in the formula
             if np.corrcoef(markWindI, marketWindow) >= corrThresh:
                 # append this to our set i.e add the index
                 corrSimSet = np.append(corrSimSet,i)
@@ -86,7 +103,7 @@ def getDatesVec(data):
 
 def marketWindow(startDate, endDate, dates, data):
     """
-    Return a market window from t-w to t-1 (inclusive of endpoints).
+    Return a market window from t-w to t-1 (inclusive of endpoints) therefore w in width.
     startDate is the index to start on.
     endDate is the index to end on.
     dates contains a vector of dates in the data.
@@ -105,6 +122,20 @@ def marketWindow(startDate, endDate, dates, data):
         count += 1
     return market
 
+def calcReturns(portfolios, dates, data, initialCapital = 1):
+    """
+    Function which generates returns given an initial portfolio.
+    Portfolios need to be a matrix that is the width of the number of tradingdays(individual portfolios), length of the number of stocks - which describe how the portfolio looks.
+    Each portfolio must be simplex, so they each are a value greater than or equal to zero, and their values sum to 1.
+    """
+    returns = np.array(())
+    for i in range(len(dates)):
+        day = dayReturn(i, dates, data)
+        val = 0
+        for j in range(numStocks):
+            val += portfolios[i][j] * day[j]
+        returns = np.append(returns, val)
+    return initialCapital * returns
 data = readDataSet()
 dates = getDatesVec(data)
 tempStartFind = data[data['Date'] == dates[0]]
