@@ -7,23 +7,42 @@ from stockMarketReader import readDataSet
 
 # Need to construct a set of experts as required by CORN
 class Expert:
+    """
+    
+    """
 
     #constructor for this expert with the two noteworthy parameters
-    def __init__(self, windowSize, corrThresh):
+    def __init__(self, windowSize, corrThresh, numStocks, numDays):
+        """
+        
+        """
         self.windowSize = windowSize
         self.corrThresh = corrThresh
         self.corrSimSet = None
+        self.numStocks = numStocks
+        self.wealthAchieved = 0
+        self.portHistory = np.empty((numStocks, numDays))
+        
     
     def assignCorrSet(self, corrSet):
+        """
+
+        """
         self.corrSimSet = corrSet
     
+    def addPort(self, portfolio, day):
+        """
+        
+        """
+        for i in range(self.numStocks):
+            self.portHistory[day][i] = portfolio[i]
     
 
 def getUniformPort():
     stocks = np.ones((numStocks))
     return stocks / numStocks
 
-def expertLearn(window, corrThresh, histMarketWind, day):
+def expertLearn(window, corrThresh, day):
     """
     Preform algorithm 1 from CORN paper.
     This algorithm is the expert learning procedure.
