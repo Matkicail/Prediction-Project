@@ -33,7 +33,23 @@ def expertLearn(window, corrThresh, histMarketWind, day):
         # Search for the optimal portfolio
         # so using the i in the set, get the argmax
         # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
-        pass
+        tempRelative = 0
+        port = np.zeros((numStocks))
+        for i in corrSimSet:
+            # get the price relative vector for the day
+            priceRelative = dayReturn(i,dates,data)
+            # index of maximum change 
+            day = dayReturn(i,dates,data)
+            day = day.reshape((numStocks,1))
+            dayVal = np.argmax(day)
+            if day == -1:
+                print("Error occurred at day " + str(i))
+            else:
+                if tempRelative < day:
+                    tempRelative = day
+                    port = np.zeros((numStocks))
+                    port[np.argmax(day,axis=0)] = 1
+        return port
         
 def dayReturn(day, dates, data):
     """
