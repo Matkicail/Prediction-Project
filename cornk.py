@@ -8,13 +8,15 @@ from stockMarketReader import readDataSet
 # Need to construct a set of experts as required by CORN
 class Expert:
     """
-    
+    This class serves the purpose of making a CORN expert
     """
 
     #constructor for this expert with the two noteworthy parameters
     def __init__(self, windowSize, corrThresh, numStocks, numDays):
         """
-        
+        Initialisation of a CORN expert with its unique parameters:
+        the window size, the correlation threshold.
+        Standard parameters being number of stocks and number of days.
         """
         self.windowSize = windowSize
         self.corrThresh = corrThresh
@@ -26,19 +28,41 @@ class Expert:
     
     def assignCorrSet(self, corrSet):
         """
-
+        A function that allows us to add a correlation similar set to this specific expert - should it be needed.
+        It will most likely not be needed given that this changes frequently.
         """
         self.corrSimSet = corrSet
     
     def addPort(self, portfolio, day):
         """
-        
+        A way to track past portfolios should it be needed.
+        In reality this is not really going to be needed given that we can track the wealth and increase the wealth.
         """
         for i in range(self.numStocks):
             self.portHistory[day][i] = portfolio[i]
     
+    
+    def setInitialAgentWealth(self, startWealth):
+        """
+        Function that sets an agent's init wealth to a specified amount.
+        """
+        self.wealthAchieved = startWealth
+
+    def increaseWealth(self, portfolio, priceVector):
+        """
+        Function that given a portfolio and a price relative vector will increase the agent's wealth using it.
+        Note that this is meant to take in the day's (i.e at time t) price relative vector.
+        """
+        temp = 0
+        for i in range(self.numStocks):
+            temp += portfolio[i]*priceVector[i]
+        # need to set a self wealth for each specific agent
+        self.wealthAchieved = self.wealthAchieved * temp
 
 def getUniformPort():
+    """
+    Generate a uniform portfolio given a number of stocks.
+    """
     stocks = np.ones((numStocks))
     return stocks / numStocks
 
