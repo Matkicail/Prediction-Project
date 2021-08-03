@@ -156,9 +156,10 @@ def getDatesVec(data):
     """
     startDate = data.Date.min()
     startDate = data[data['Date'] == startDate]
-    tick = np.unique(startDate.Ticker.to_numpy())[0]
+    startDate = startDate.Ticker.to_numpy()
+    tick = np.unique(startDate)[0]
     tickerDates = data[data['Ticker'] == tick]
-    tickerDates = data.Date.to_numpy()
+    tickerDates = np.unique(data.Date.to_numpy())
     return tickerDates
 
 def generateHistoricalMarket(data, dates, numStocks):
@@ -166,6 +167,7 @@ def generateHistoricalMarket(data, dates, numStocks):
     Function to generate a set of historical price relative vectors.
     Given a data set, the dates as a numpy array and the number of stocks in the data set.
     """
+    print(len(dates))
     relatives = np.empty((numStocks, len(dates)))
     initalDay = np.ones((numStocks))
     relatives[:,0] = initalDay
@@ -178,7 +180,7 @@ def generateHistoricalMarket(data, dates, numStocks):
             change = marketToday.Close.to_numpy()/marketYesterday.Close.to_numpy()
             change = change.reshape(numStocks)
             relatives[:,i] = change
-            if i % 1000 == 0:
+            if i % 100 == 0:
                 percent = i/len(dates)
                 statement = "Percentage: " + str(percent*100) + "%, number of errors: " + str(numErrors)
                 print(statement)
@@ -190,7 +192,7 @@ def generateHistoricalMarket(data, dates, numStocks):
     for i in errorDays:
         print("Error at day: " +str(i))
     print(numErrors)
-    name = "BOVPRICERELATIVES.txt"
+    name = "SP5PRICERELATIVES.txt"
     print("Saving data as " + name)
     np.savetxt(name,relatives)
     print("Saved")
@@ -294,16 +296,16 @@ def runCorn(dates, data, windowSize, P):
 
 data = readDataSet()
 dates = getDatesVec(data)
+print(len(dates))
 tempStartFind = data[data['Date'] == dates[0]]
 tempTickersFind = np.unique(tempStartFind.Ticker.to_numpy())
 numStocks = len(tempTickersFind)
-today = dayReturn(1,dates,data)
-market = marketWindow(1007,1012,dates,data)
-print(market)
-windowSize = 3
-P = 3
-expertLearn(windowSize, 0, 2, data)
-experts = initExperts(windowSize,numStocks,P)
-# printExperts(experts,windowSize,P)
-# runCorn(dates,data,windowSize,P)
-print(generateHistoricalMarket(data, dates, numStocks))
+# today = dayReturn(1,dates,data)
+# market = marketWindow(1007,1012,dates,data)
+# print(market)
+# windowSize = 3
+# P = 3
+# expertLearn(windowSize, 0, 2, data)
+# experts = initExperts(windowSize,numStocks,P)
+# # printExperts(experts,windowSize,P)
+# # runCorn(dates,data,windowSize,P)
