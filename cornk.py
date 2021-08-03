@@ -163,17 +163,41 @@ def getDatesVec(data):
 
 def generateHistoricalMarket(data, dates, numStocks):
     """
-    
+    Function to generate a set of historical price relative vectors.
+    Given a data set, the dates as a numpy array and the number of stocks in the data set.
     """
-    relatives = np.array((numStocks, len(dates)))
-    initalDay = np.ones((numStocks,1))
+    relatives = np.empty((numStocks, len(dates)))
+    initalDay = np.ones((numStocks))
     relatives[:,0] = initalDay
+    numErrors = 0
+    errorDays = np.array(())
     for i in range(1,len(dates)):
-        marketToday = data[data['Date'] == dates[i]]
-        marketYesterday = data[data['Date'] == dates[i-1]]
-        change = marketToday.Close.to_numpy()/marketYesterday.Close.to_numpy()
-        change = change.reshape(numStocks,1)
-        relatives[:,i] = change
+        try:
+            marketToday = data[data['Date'] == dates[i]]
+            marketYesterday = data[data['Date'] == dates[i-1]]
+            change = marketToday.Close.to_numpy()/marketYesterday.Close.to_numpy()
+            change = change.reshape(numStocks)
+            relatives[:,i] = change
+            if i % 1000 == 0:
+                percent = i/len(dates)
+                statement = "Percentage: " + str(percent*100) + "%, number of errors: " + str(numErrors)
+                print(statement)
+        except:
+            numErrors += 1
+            errorDays = np.append(errorDays, i)
+            #acknowledge where errors occured we appeneded a 1's array
+            relatives[:,i] = np.ones((numStocks))
+    for i in errorDays:
+        print("Error at day: " +str(i))
+    print(numErrors)
+    name = "BOVPRICERELATIVES.txt"
+    print("Saving data as " + name)
+    np.savetxt(name,relatives)
+    print("Saved")
+    content = np.loadtxt(name)
+    print("Length of saved item was as follows(numStocks,length):" + str(relatives.shape))
+    print("Loaded")
+    print("Shape " + str(content.shape))
     return relatives
 
 def marketWindow(startDate, endDate, dates, data):
