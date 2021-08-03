@@ -309,7 +309,17 @@ def runCorn(dates, data, windowSize, P):
                     print("Error at day: " + str(i) + ", window: " + str(w+1) + ", corrThresh: " + str(p))
                     if i == 4:
                         return
-    # combine our experts
+    # combine our experts' portfolios
+
+    # update our total wealth
+
+    #update the experts' individual wealths
+
+    # TOP-K and expert weights update
+    # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
+    
+    # set their weights 
+    # set the weights for the rest to be 0
 
 
 data = readDataSet()
