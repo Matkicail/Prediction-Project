@@ -102,7 +102,7 @@ def expertLearn(window, corrThresh, day, data):
                 corrSimSet = np.append(corrSimSet,i)
             # print("Test 6")
     if len(corrSimSet) == 0:
-        # print("Empty set")
+        print("Empty set")
         return getUniformPort()
     else:
         # Search for the optimal portfolio
@@ -131,28 +131,33 @@ def dayReturn(day, dates, data):
     """
     Given a day, the dates and a dataframe.
     Get stock market data for the given day - organise it vertically.
-    SOME ISSUE EXISTS HERE SO DO NOT USE THIS
+    TODO CHECK THAT THIS WORKS
+    NOTE data here is the newly created price relative matrix for market history
     """
     if day != 0:
-        try:
-            yesterdayReturn = data[data['Date'] == dates[day-1]]
-            yesterdayReturn = yesterdayReturn.Close.to_numpy()
-            todayReturn = data[data['Date'] == dates[day]]
-            todayReturn = todayReturn.Close.to_numpy()
-            todayReturn = todayReturn / yesterdayReturn
-            return todayReturn.reshape(len(todayReturn),1)
-        except:
-            print("error for given date, returning -1 as sentinel")
-            return -1
+            # yesterdayReturn = data[data['Date'] == dates[day-1]]
+            # yesterdayReturn = yesterdayReturn.Close.to_numpy()
+            # todayReturn = data[data['Date'] == dates[day]]
+            # todayReturn = todayReturn.Close.to_numpy()
+            # todayReturn = todayReturn / yesterdayReturn
+            # return todayReturn.reshape(len(todayReturn),1)
+            # want a column for day before so
+            # since already encoded in this format
+            todayReturn = data[:,day]
+            return todayReturn
     else:
         # Find number of stocks and then return 1 for each
-        startDate = data[data['Date'] == dates[0]]
-        tickers = np.unique(startDate.Ticker.to_numpy())
-        return np.ones((len(tickers)))
+        # startDate = data[data['Date'] == dates[0]]
+        # tickers = np.unique(startDate.Ticker.to_numpy())
+        numOfStocks =  data.shape[0]
+        return np.ones((numOfStocks))
+
 
 def getDatesVec(data):
     """
     Get the vector of dates that spans a given stock market data set - specifically done for CORN algorithm but not exclusive to it
+    note that this requires the pandas dataframe of data
+    NOTE pandas dataframe for data
     """
     startDate = data.Date.min()
     startDate = data[data['Date'] == startDate]
@@ -180,6 +185,7 @@ def cornDataRead():
         print("ERROR INPUT CORRECT NAME")
         return cornDataRead()
 
+# does not rely on using pandas dataframe
 def generateHistoricalMarket(data, dates, numStocks):
     """
     Function to generate a set of historical price relative vectors.
@@ -220,6 +226,7 @@ def generateHistoricalMarket(data, dates, numStocks):
     print("Shape " + str(content.shape))
     return relatives
 
+# relies on using day return a few times
 def marketWindow(startDate, endDate, dates, data):
     """
     Return a market window from t-w to t-1 (inclusive of endpoints) therefore w in width.
@@ -241,6 +248,7 @@ def marketWindow(startDate, endDate, dates, data):
         count += 1
     return market
 
+# only relies on dayReturn for the use of data
 def calcReturns(portfolios, dates, data, initialCapital = 1):
     """
     Function which generates returns given an initial portfolio.
@@ -283,6 +291,7 @@ def printExperts(experts, windowSize, P):
         for j in range(0,windowSize-1):
             print("Expert at " + str(i*(windowSize-1) + j) +" with characteristics:"+str(experts[i*(windowSize-1) +j].windowSize) + "," + str(experts[i*(windowSize-1) +j].corrThresh))
 
+# No reliance on dataframe data
 def runCorn(dates, data, windowSize, P):
     """
     Run the CORN-K algorithm on the data set
@@ -317,7 +326,7 @@ def runCorn(dates, data, windowSize, P):
 
     # TOP-K and expert weights update
     # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
-    
+
     # set their weights 
     # set the weights for the rest to be 0
 
@@ -330,12 +339,20 @@ print(len(dates))
 tempStartFind = data[data['Date'] == dates[0]]
 tempTickersFind = np.unique(tempStartFind.Ticker.to_numpy())
 numStocks = len(tempTickersFind)
-# today = dayReturn(1,dates,data)
-# market = marketWindow(1007,1012,dates,data)
-# print(market)
-# windowSize = 3
-# P = 3
-# expertLearn(windowSize, 0, 2, data)
+today = dayReturn(1,dates,dataset)
+print("CURRENT TESTS")
+print(today)
+market = marketWindow(1007,1012,dates,dataset)
+print(market)
+windowSize = 3
+P = 3
+print("CHECKING EXPERT PORTFOLIO")
+uniformExp = expertLearn(windowSize, 0, 2, dataset)
+print("UNIFORM EXPERT")
+print(uniformExp)
+print("NORMAL EXPERT")
+normalExpert = expertLearn(25, 0.66, 103, dataset)
+print(normalExpert)
 # experts = initExperts(windowSize,numStocks,P)
 # # printExperts(experts,windowSize,P)
 # # runCorn(dates,data,windowSize,P)
