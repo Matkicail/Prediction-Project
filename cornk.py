@@ -162,6 +162,24 @@ def getDatesVec(data):
     tickerDates = np.unique(data.Date.to_numpy())
     return tickerDates
 
+def cornDataRead():
+    name = input("Name of data set\n")
+    if name == "BIS":
+        return np.loadtxt("BISPRICERELATIVES.txt")
+    elif name == "BOV":
+        return np.loadtxt("BOVPRICERELATIVES.txt")
+    elif name == "EUR":
+        return np.loadtxt("EURPRICERELATIVES.txt")
+    elif name == "JSE":
+        return np.loadtxt("JSEPRICERELATIVES.txt")
+    elif name == "NAS":
+        return np.loadtxt("NASPRICERELATIVES.txt")
+    elif name == "SP5":
+        return np.loadtxt("SP5PRICERELATIVES.txt")
+    else:
+        print("ERROR INPUT CORRECT NAME")
+        return cornDataRead()
+
 def generateHistoricalMarket(data, dates, numStocks):
     """
     Function to generate a set of historical price relative vectors.
@@ -295,6 +313,8 @@ def runCorn(dates, data, windowSize, P):
 
 
 data = readDataSet()
+dataset = cornDataRead()
+print(dataset)
 dates = getDatesVec(data)
 print(len(dates))
 tempStartFind = data[data['Date'] == dates[0]]
