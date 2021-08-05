@@ -143,7 +143,13 @@ def dayReturn(day, dates, data):
             # return todayReturn.reshape(len(todayReturn),1)
             # want a column for day before so
             # since already encoded in this format
-            todayReturn = data[:,day]
+            # print(data.shape)
+            todayReturn = np.zeros((numStocks))
+            for x in range(numStocks):
+                # print("X IS : " + str(x))
+                # print("TODAY RETURN AT " + str(todayReturn[x]))
+                todayReturn[x] = data[x][day]
+                # print("TODAY RETURN AT " + str(todayReturn[x]))
             return todayReturn
     else:
         # Find number of stocks and then return 1 for each
@@ -273,13 +279,12 @@ def initExperts(windowSize, numStocks, P):
     """
 
     # init W*P experts
-    experts = np.array((), dtype=object)
-    for i in range(1,windowSize):
+    experts = []
+    for i in range(0,windowSize-1):
         for j in range(P):
-            index = (windowSize-1)*i + j
             # __init__(self, windowSize, corrThresh, numStocks, numDays):
             expert = Expert(i,j/P, numStocks, len(dates))
-            experts = np.append(experts, expert)
+            experts.append(expert)
     return experts
 
 def printExperts(experts, windowSize, P):
@@ -287,47 +292,76 @@ def printExperts(experts, windowSize, P):
     Function to print the experts.
     Pay attention to the indexing, since a 0 window does not make sense it feels
     """
-    for i in range(P):
-        for j in range(0,windowSize-1):
+    for i in range(0,windowSize-1):
+        for j in range(0,P):
             print("Expert at " + str(i*(windowSize-1) + j) +" with characteristics:"+str(experts[i*(windowSize-1) +j].windowSize) + "," + str(experts[i*(windowSize-1) +j].corrThresh))
+
+def findTopK(experts):
+    """
+    Function to find the top-K experts.
+    Based on a chosen K
+    An array of the indices of where the best elements occurred) NOTE THAT THIS WILL BE A FLATTENED ARRAY
+    """
+    expertsWealth = np.empty((windowSize-1,P))
+    for i in range(windowSize-1):
+        for j in range(P):
+            expertsWealth[i][j] = experts[i*(windowSize-1) + j].wealthAchieved
+            print(experts[i*(windowSize-1) + j].wealthAchieved)
+            print(expertsWealth)
+    indicesBest = np.array(())
+    # need to flatten to be able to use delete
+    expertsWealth = expertsWealth.flatten()
+    for i in range(K):
+        currBest = np.argmax(expertsWealth)
+        indicesBest = np.append(indicesBest, currBest)
+        # Create a sentinel value to ignore
+        expertsWealth[currBest] = -999
+    return indicesBest
 
 # No reliance on dataframe data
 def runCorn(dates, data, windowSize, P):
     """
     Run the CORN-K algorithm on the data set
+    TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
     """
     # create experts which a 1D array
     experts = initExperts(windowSize,numStocks,P)
-    experts = experts.reshape(windowSize-1,P)
     # going downwards window size increases, going rightwards the corrThresh increases
     totError = 0
     windowError = np.zeros((windowSize-1))
     corrThreshError = np.zeros((P))
     # starting from first day to the final day
+    # first day we get an initial wealth of 0 (t = 0)
+    returns = np.array(())
+    returns = np.append(returns,1)
     for i in range(len(dates)):
         # for each window size as based on the experts which is of length windowSize - 1
         for w in range(windowSize - 1):
             # for each corrThresh in the width which is P wide
             for p in range(P):
                 # Apply the corn expert learning algorithm on this expert using its parameters
-                try:
-                    experts[w][p].currPort = expertLearn(experts[w][p].windowSize, experts[w][p].corrThresh, i, data)
-                except:
-                    
-                    print("Expert character: " + str(experts[w][p].windowSize) + " ," + str(experts[w][p].corrThresh))
-                    print("Error at day: " + str(i) + ", window: " + str(w+1) + ", corrThresh: " + str(p))
-                    if i == 4:
-                        return
+                experts[(windowSize-1)*w + p].currPort = expertLearn(experts[(windowSize-1)*w + p].windowSize, experts[(windowSize-1)*w + p].corrThresh, i, data)
+                if i == 4:
+                    return
     # combine our experts' portfolios
-
+    portfolio = np.zeros((numStocks,))
     # update our total wealth
-
+    day = dayReturn(i,dates,data)
+    returns = np.append(returns, np.dot(portfolio, day))
     #update the experts' individual wealths
-
+    expertDayEarly = experts
+    for m in range(windowSize-1):
+        for n in range(P):
+            experts[(windowSize-1)*m + n].increaseWealth(self.currPort, day) 
     # TOP-K and expert weights update
+    # first need to find these top-K experts
     # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
+    # this will not be a 2D array and instead an array that is flattened
+    # Given that experts should also be a flattened array this should be acceptable
+    topK = findTopK(expertDayEarly)
+    
+    # set their weights (TOP K)
 
-    # set their weights 
     # set the weights for the rest to be 0
 
 
@@ -344,15 +378,25 @@ print("CURRENT TESTS")
 print(today)
 market = marketWindow(1007,1012,dates,dataset)
 print(market)
-windowSize = 3
-P = 3
-print("CHECKING EXPERT PORTFOLIO")
-uniformExp = expertLearn(windowSize, 0, 2, dataset)
-print("UNIFORM EXPERT")
-print(uniformExp)
-print("NORMAL EXPERT")
-normalExpert = expertLearn(25, 0.66, 103, dataset)
-print(normalExpert)
-# experts = initExperts(windowSize,numStocks,P)
+windowSize = 5
+P = 5
+K = 5
+for i in range(len(dates)- windowSize):
+    market = marketWindow(i,i+windowSize,dates,dataset)
+    # print(i)
+    # print(market)
+# print("CHECKING EXPERT PORTFOLIO")
+# uniformExp = expertLearn(windowSize, 0, 2, dataset)
+# print("UNIFORM EXPERT")
+# print(uniformExp)
+# print("NORMAL EXPERT")
+# normalExpert = expertLearn(25, 0.66, 103, dataset)
+# print(normalExpert)
+input("Ready to continue ? \n")
+experts = initExperts(windowSize,numStocks,P)
+printExperts(experts, windowSize, P)
+print(type(experts))
+print(type(experts[0]))
+print(findTopK(experts))
 # # printExperts(experts,windowSize,P)
-# # runCorn(dates,data,windowSize,P)
+runCorn(dates,data,windowSize,P)
