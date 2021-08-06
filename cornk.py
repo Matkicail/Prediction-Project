@@ -49,14 +49,14 @@ class Expert:
         for i in range(self.numStocks):
             self.portHistory[day][i] = portfolio[i]
     
-    def increaseWealth(self, portfolio, priceVector):
+    def increaseWealth(self, priceVector):
         """
         Function that given a portfolio and a price relative vector will increase the agent's wealth using it.
         Note that this is meant to take in the day's (i.e at time t) price relative vector.
         """
         temp = 0
         for i in range(self.numStocks):
-            temp += portfolio[i]*priceVector[i]
+            temp += self.currPort[i]*priceVector[i]
         # need to set a self wealth for each specific agent
         self.wealthAchieved = self.wealthAchieved * temp
 
@@ -81,8 +81,12 @@ def expertLearn(window, corrThresh, day, data):
         #check out
         for i in range(window + 1,day): #just check that this works otherwise change it to t
             # print("Test 1")
+            # print("size of window: " + str(window))
+            # print("I-window: " + str(i-window) + " , i-1: " + str(i-1))
+            # print(data.shape)
             markWindI = marketWindow(i-window, i-1, dates, data)
             # print("Test 2")
+            # print("day-window: " + str(day-window) + " , day-1: " + str(day-1))
             markWindT = marketWindow(day - window, day - 1, dates, data)
             # print("Test 3")
             # check at some point to ensure that this captures the standard deviation for the whole window (i.e output not something weird)
@@ -114,8 +118,8 @@ def expertLearn(window, corrThresh, day, data):
             # get the price relative vector for the day
             priceRelative = dayReturn(i,dates,data)
             # index of maximum change 
-            day = dayReturn(i,dates,data)
-            day = day.reshape((numStocks,1))
+            # day = dayReturn(i,dates,data)
+            # day = day.reshape((numStocks,1))
             dayVal = np.argmax(day)
             if day == -1:
                 print("Error occurred at day " + str(i))
@@ -124,7 +128,7 @@ def expertLearn(window, corrThresh, day, data):
                     tempRelative = day
                     port = np.zeros((numStocks))
                     port[np.argmax(day,axis=0)] = 1
-        print("WAS ABLE TO FIND AN OPTIAML PORT")
+        print("WAS ABLE TO FIND AN OPTIMAL PORT")
         return port
         
 def dayReturn(day, dates, data):
@@ -134,6 +138,7 @@ def dayReturn(day, dates, data):
     TODO CHECK THAT THIS WORKS
     NOTE data here is the newly created price relative matrix for market history
     """
+    day = int(day)
     if day != 0:
             # yesterdayReturn = data[data['Date'] == dates[day-1]]
             # yesterdayReturn = yesterdayReturn.Close.to_numpy()
@@ -145,12 +150,20 @@ def dayReturn(day, dates, data):
             # since already encoded in this format
             # print(data.shape)
             todayReturn = np.zeros((numStocks))
-            for x in range(numStocks):
-                # print("X IS : " + str(x))
-                # print("TODAY RETURN AT " + str(todayReturn[x]))
-                todayReturn[x] = data[x][day]
-                # print("TODAY RETURN AT " + str(todayReturn[x]))
-            return todayReturn
+            # print(todayReturn.shape)
+            # print(data.shape)
+            try:
+                for x in range(numStocks):
+                    # print("X IS : " + str(x))
+                    # print("TODAY RETURN AT " + str(todayReturn[x]))
+                    todayReturn[x] = data[x][day]
+                    # print("TODAY RETURN AT " + str(todayReturn[x]))
+                return todayReturn
+            except:
+                print(data.shape)
+                print(day)
+                print(data[:][day])
+                input()
     else:
         # Find number of stocks and then return 1 for each
         # startDate = data[data['Date'] == dates[0]]
@@ -244,15 +257,18 @@ def marketWindow(startDate, endDate, dates, data):
     # Finding out the length of the stocks is useful here
     width = endDate - startDate + 1
     # Make a window that can contain all stocks
-    market = np.empty((numStocks,width))
-    count = 0
-    for i in range(startDate, endDate + 1):
-        window = dayReturn(i,dates,data)
-        # print(window)
-        for j in range(numStocks):
-            market[j][count] = window[j]
-        count += 1
-    return market
+    if(width != 1):
+        market = np.empty((numStocks,width))
+        count = 0
+        for i in range(startDate, endDate + 1):
+            window = dayReturn(i,dates,data)
+            # print(window)
+            for j in range(numStocks):
+                market[j][count] = window[j]
+            count += 1
+        return market
+    else:
+        return dayReturn(endDate,dates,data)
 
 # only relies on dayReturn for the use of data
 def calcReturns(portfolios, dates, data, initialCapital = 1):
@@ -324,6 +340,7 @@ def runCorn(dates, data, windowSize, P):
     Run the CORN-K algorithm on the data set
     TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
     """
+    portfolioHist = np.array((numStocks,len(dates)))
     # create experts which a 1D array
     experts = initExperts(windowSize,numStocks,P)
     # going downwards window size increases, going rightwards the corrThresh increases
@@ -341,29 +358,43 @@ def runCorn(dates, data, windowSize, P):
             for p in range(P):
                 # Apply the corn expert learning algorithm on this expert using its parameters
                 experts[(windowSize-1)*w + p].currPort = expertLearn(experts[(windowSize-1)*w + p].windowSize, experts[(windowSize-1)*w + p].corrThresh, i, data)
-                if i == 4:
-                    return
-    # combine our experts' portfolios
-    portfolio = np.zeros((numStocks,))
-    # update our total wealth
-    day = dayReturn(i,dates,data)
-    returns = np.append(returns, np.dot(portfolio, day))
-    #update the experts' individual wealths
-    expertDayEarly = experts
-    for m in range(windowSize-1):
-        for n in range(P):
-            experts[(windowSize-1)*m + n].increaseWealth(self.currPort, day) 
-    # TOP-K and expert weights update
-    # first need to find these top-K experts
-    # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
-    # this will not be a 2D array and instead an array that is flattened
-    # Given that experts should also be a flattened array this should be acceptable
-    topK = findTopK(expertDayEarly)
-    
-    # set their weights (TOP K)
+        # combine our experts' portfolios
+        portfolio = np.zeros((numStocks,))
+        # update our total wealth
+        day = dayReturn(i,dates,data)
+        returns = np.append(returns, np.dot(portfolio, day))
+        #update the experts' individual wealths
+        expertDayEarly = experts
+        for m in range(windowSize-1):
+            for n in range(P):
+                experts[(windowSize-1)*m + n].increaseWealth(day) 
+        # TOP-K and expert weights update
+        # first need to find these top-K experts
+        # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
+        # this will not be a 2D array and instead an array that is flattened
+        # Given that experts should also be a flattened array this should be acceptable
+        topK = findTopK(expertDayEarly)
+        # since topK contains the indices of the top-k experts we will just loop through the experts
+        for x in range((windowSize-1)*P):
+            # set their weights (TOP K)
+            if x in topK:
+                experts[x].weight = 1 / K
+            # set the weights for the rest to be 0 
+            else:
+                experts[x].weight = 0
 
-    # set the weights for the rest to be 0
-
+        # generating the portfolio
+        todayPortNumerator = np.zeros(numStocks)
+        todayPortDenom = np.zeros(numStocks)
+        for x in range((windowSize-1)*P):
+            if experts[x].weight != 0:
+                todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
+                todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+            else:
+                pass
+        todayPort = todayPortNumerator / todayPortDenom
+        for x in range(numStocks):
+            portfolioHist[x][i] = todayPort[x]
 
 data = readDataSet()
 dataset = cornDataRead()
@@ -376,13 +407,13 @@ numStocks = len(tempTickersFind)
 today = dayReturn(1,dates,dataset)
 print("CURRENT TESTS")
 print(today)
-market = marketWindow(1007,1012,dates,dataset)
+market = marketWindow(1,1,dates,dataset)
 print(market)
 windowSize = 5
 P = 5
 K = 5
-for i in range(len(dates)- windowSize):
-    market = marketWindow(i,i+windowSize,dates,dataset)
+# for i in range(len(dates)- windowSize):
+#     market = marketWindow(i,i+windowSize,dates,dataset)
     # print(i)
     # print(market)
 # print("CHECKING EXPERT PORTFOLIO")
@@ -399,4 +430,4 @@ print(type(experts))
 print(type(experts[0]))
 print(findTopK(experts))
 # # printExperts(experts,windowSize,P)
-runCorn(dates,data,windowSize,P)
+runCorn(dates,dataset,windowSize,P)
