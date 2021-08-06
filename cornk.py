@@ -352,6 +352,7 @@ def runCorn(dates, data, windowSize, P):
     returns = np.array(())
     returns = np.append(returns,1)
     for i in range(len(dates)):
+        print("i is: " + str(i))
         # for each window size as based on the experts which is of length windowSize - 1
         for w in range(windowSize - 1):
             # for each corrThresh in the width which is P wide
@@ -394,6 +395,7 @@ def runCorn(dates, data, windowSize, P):
                 pass
         todayPort = todayPortNumerator / todayPortDenom
         for x in range(numStocks):
+            print(x)
             portfolioHist[x][i] = todayPort[x]
 
 data = readDataSet()
