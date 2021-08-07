@@ -4,7 +4,7 @@ from numpy.lib import corrcoef
 import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
-
+import math
 # Need to construct a set of experts as required by CORN
 class Expert:
     """
@@ -72,7 +72,7 @@ def expertLearn(window, corrThresh, day, data):
     corrSimSet = np.array(())
     if day <= window + 1:
         #works
-        return getUniformPort()
+        return uniformPort
     else:
         #check out
         for i in range(window + 1,day): #just check that this works otherwise change it to t
@@ -103,28 +103,31 @@ def expertLearn(window, corrThresh, day, data):
             # print("Test 6")
     if len(corrSimSet) == 0:
         # print("Empty set")
-        return getUniformPort()
+        return uniformPort
     else:
         # Search for the optimal portfolio
         # so using the i in the set, get the argmax
         # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
         tempRelative = 0
+        bestDay = -1
         port = np.zeros((numStocks))
-        print("I found this many in my corrSimSet: " + len(corrSimSet))
+        print("I found this many in my corrSimSet: " + str(len(corrSimSet)))
         for i in corrSimSet:
             # get the price relative vector for the day
             priceRelative = dayReturn(i,dates,data)
             # index of maximum change 
             # day = dayReturn(i,dates,data)
             # day = day.reshape((numStocks,1))
-            dayVal = np.argmax(day)
+            temp = priceRelative.max()
             if day == -1:
                 print("Error occurred at day " + str(i) + " Stuff went terribly inside expert learn")
             else:
-                if tempRelative < day:
-                    tempRelative = day
+                if tempRelative < temp:
+                    bestDay = i
+                    temp = priceRelative.max()
                     port = np.zeros((numStocks))
-                    port[np.argmax(day,axis=0)] = 1
+                    # print(tempRelative)
+                    port[np.argmax(priceRelative,axis=0)] = 1
         # print("WAS ABLE TO FIND AN OPTIMAL PORT")
         return port
         
@@ -155,6 +158,10 @@ def dayReturn(day, dates, data):
                     # print("TODAY RETURN AT " + str(todayReturn[x]))
                     todayReturn[x] = data[x][day]
                     # print("TODAY RETURN AT " + str(todayReturn[x]))
+                # for x in range(numStocks):
+                #     if math.isnan(todayReturn[x]):
+                #         print("error occurred here")
+                #         return np.ones((numStocks))
                 return todayReturn
             except:
                 print(data.shape)
@@ -315,15 +322,13 @@ def findTopK(experts):
     Based on a chosen K
     An array of the indices of where the best elements occurred) NOTE THAT THIS WILL BE A FLATTENED ARRAY
     """
-    expertsWealth = np.empty((windowSize-1,P))
-    for i in range(windowSize-1):
-        for j in range(P):
-            expertsWealth[i][j] = experts[i*(windowSize-1) + j].wealthAchieved
+    expertsWealth = np.empty((windowSize-1)*P)
+    for i in range((windowSize-1)*P):
+        expertsWealth[i] = experts[i].wealthAchieved
             # print(experts[i*(windowSize-1) + j].wealthAchieved)
             # print(expertsWealth)
     indicesBest = np.array(())
-    # need to flatten to be able to use delete
-    expertsWealth = expertsWealth.flatten()
+
     for i in range(K):
         currBest = np.argmax(expertsWealth)
         indicesBest = np.append(indicesBest, currBest)
@@ -340,9 +345,7 @@ def runCorn(dates, data, windowSize, P):
     # create experts which a 1D array
     experts = initExperts(windowSize,numStocks,P)
     # going downwards window size increases, going rightwards the corrThresh increases
-    totError = 0
-    windowError = np.zeros((windowSize-1))
-    corrThreshError = np.zeros((P))
+    totReturn = 1
     # starting from first day to the final day
     # first day we get an initial wealth of 0 (t = 0)
     returns = np.array(())
@@ -368,49 +371,42 @@ def runCorn(dates, data, windowSize, P):
         # Given that experts should also be a flattened array this should be acceptable
         topK = findTopK(expertDayEarly)
         # since topK contains the indices of the top-k experts we will just loop through the experts
-        for x in range((windowSize-1)*P):
+        for x in topK:
             # set their weights (TOP K)
+            x = int(x)
             if x in topK:
                 experts[x].weight = 1 / K
-            # set the weights for the rest to be 0 
-            else:
-                experts[x].weight = 0
+            # just not setting the weights for the others should acheive the same complexity
 
-        # generating the portfolio
         todayPortNumerator = np.zeros(numStocks)
         todayPortDenom = np.zeros(numStocks)
-        for x in range((windowSize-1)*P):
+        for x in topK:
+            x = int(x)
             if experts[x].weight != 0:
-                try:
-                    todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
-                    todayPortDenom += experts[x].weight * experts[x].wealthAchieved
-                except:
-                    print("ERROR AT DAY: " + str(i))
-                    print("ERROR ON EXPERT X: "+ str(x))
-                    print(experts[x].weight)
-                    print(experts[x].wealthAchieved)
-                    print(experts[x].currPort)
-                    input()
+                todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
+                todayPortDenom += experts[x].weight * experts[x].wealthAchieved
             else:
                 pass
         todayPort = todayPortNumerator / todayPortDenom
-        print("Sum of portfolio for today is :" + str(todayPort.sum()))
-        # print(todayPort)
-        # print("\n ------------------------- \n")
-        # print(today)
         val = day @ todayPort
-        print("TODAY'S RETURN IS: " + str(val))
-        returns = np.append(returns,val)
-        # print(val.shape)
-        # print(val)
-        # input()
-        if val == 0:
-            print("VALUE IS 0 AT DAY" + str(i))
-        if i == 1000:
+        if not math.isnan(val):
+            totReturn = totReturn * val
+        else:
+            print("NAN VALUE ENCOUNTERED AT DATE:" + str(i))
+        print("TOTAL RETURN AT CURRENT IS: " + str(totReturn))
+        returns = np.append(returns,totReturn)
+
+        # if val == 0:
+        #     print("VALUE IS 0 AT DAY" + str(i))
+        if i == 100:
             return returns
     return returns
 data = readDataSet()
 dataset = cornDataRead()
+for i in range(dataset.shape[1]):
+    for j in range(dataset.shape[0]):
+        if math.isnan(dataset[j][i]):
+            dataset[j][i] = 1
 print(dataset)
 dates = getDatesVec(data)
 print(len(dates))
@@ -422,8 +418,9 @@ print("CURRENT TESTS")
 print(today)
 market = marketWindow(1,1,dates,dataset)
 print(market)
+uniformPort = np.ones((numStocks)) / numStocks
 windowSize = 5
-P = 5
+P = 10
 K = 5
 # for i in range(len(dates)- windowSize):
 #     market = marketWindow(i,i+windowSize,dates,dataset)
@@ -436,15 +433,14 @@ K = 5
 # print("NORMAL EXPERT")
 # normalExpert = expertLearn(25, 0.66, 103, dataset)
 # print(normalExpert)
-input("Ready to continue ? \n")
-experts = initExperts(windowSize,numStocks,P)
-printExperts(experts, windowSize, P)
-print(type(experts))
-print(type(experts[0]))
-print(findTopK(experts))
-# # printExperts(experts,windowSize,P)
+# experts = initExperts(windowSize,numStocks,P)
+# printExperts(experts, windowSize, P)
+# print(type(experts))
+# print(type(experts[0]))
+# print(findTopK(experts))
 wealth = runCorn(dates,dataset,windowSize,P)
-print("Minimum value in wealth array: " + wealth.min())
-print("Maximum value in wealth array: " + wealth.max())
+print("Minimum value in wealth array: " + str(wealth.min()))
+print("Maximum value in wealth array: " + str(wealth.max()))
+np.savetxt("NASCORNRETURNS.txt",wealth)
 plt.plot(wealth)
 plt.show()
