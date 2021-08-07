@@ -20,7 +20,6 @@ class Expert:
         """
         self.windowSize = windowSize
         self.corrThresh = corrThresh
-        self.corrSimSet = None
         self.numStocks = numStocks
         self.weight = 0
         # initial wealth as based on page 12 note
@@ -54,11 +53,8 @@ class Expert:
         Function that given a portfolio and a price relative vector will increase the agent's wealth using it.
         Note that this is meant to take in the day's (i.e at time t) price relative vector.
         """
-        temp = 0
-        for i in range(self.numStocks):
-            temp += self.currPort[i]*priceVector[i]
         # need to set a self wealth for each specific agent
-        self.wealthAchieved = self.wealthAchieved * temp
+        self.wealthAchieved = self.wealthAchieved * (self.currPort @ priceVector)
 
 def getUniformPort():
     """
@@ -93,7 +89,7 @@ def expertLearn(window, corrThresh, day, data):
             # flattened just to ensure that this does happen
             pearsonCor = -1
             if np.std(markWindI.flatten()) == 0 or np.std(markWindT.flatten()) == 0:
-                print("Recognised a 0 standard deviation in a market window")
+                # print("Recognised a 0 standard deviation in a market window")
                 pearsonCor = 0
             # print("Test 4")
             # may need to change this to the exact calculation they use in the formula
@@ -101,12 +97,12 @@ def expertLearn(window, corrThresh, day, data):
                 pearsonCor = np.cov(markWindI, markWindT) / (np.std(markWindI.flatten()) * np.std(markWindT.flatten()) )
                 # print("Test 5")
             elif  pearsonCor >= corrThresh:
-                print("Appended a set")
+                # print("Appended a set")
                 # append this to our set i.e add the index
                 corrSimSet = np.append(corrSimSet,i)
             # print("Test 6")
     if len(corrSimSet) == 0:
-        print("Empty set")
+        # print("Empty set")
         return getUniformPort()
     else:
         # Search for the optimal portfolio
@@ -114,6 +110,7 @@ def expertLearn(window, corrThresh, day, data):
         # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
         tempRelative = 0
         port = np.zeros((numStocks))
+        print("I found this many in my corrSimSet: " + len(corrSimSet))
         for i in corrSimSet:
             # get the price relative vector for the day
             priceRelative = dayReturn(i,dates,data)
@@ -122,13 +119,13 @@ def expertLearn(window, corrThresh, day, data):
             # day = day.reshape((numStocks,1))
             dayVal = np.argmax(day)
             if day == -1:
-                print("Error occurred at day " + str(i))
+                print("Error occurred at day " + str(i) + " Stuff went terribly inside expert learn")
             else:
                 if tempRelative < day:
                     tempRelative = day
                     port = np.zeros((numStocks))
                     port[np.argmax(day,axis=0)] = 1
-        print("WAS ABLE TO FIND AN OPTIMAL PORT")
+        # print("WAS ABLE TO FIND AN OPTIMAL PORT")
         return port
         
 def dayReturn(day, dates, data):
@@ -322,8 +319,8 @@ def findTopK(experts):
     for i in range(windowSize-1):
         for j in range(P):
             expertsWealth[i][j] = experts[i*(windowSize-1) + j].wealthAchieved
-            print(experts[i*(windowSize-1) + j].wealthAchieved)
-            print(expertsWealth)
+            # print(experts[i*(windowSize-1) + j].wealthAchieved)
+            # print(expertsWealth)
     indicesBest = np.array(())
     # need to flatten to be able to use delete
     expertsWealth = expertsWealth.flatten()
@@ -340,7 +337,6 @@ def runCorn(dates, data, windowSize, P):
     Run the CORN-K algorithm on the data set
     TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
     """
-    portfolioHist = np.array((numStocks,len(dates)))
     # create experts which a 1D array
     experts = initExperts(windowSize,numStocks,P)
     # going downwards window size increases, going rightwards the corrThresh increases
@@ -351,24 +347,20 @@ def runCorn(dates, data, windowSize, P):
     # first day we get an initial wealth of 0 (t = 0)
     returns = np.array(())
     returns = np.append(returns,1)
+
     for i in range(len(dates)):
         print("i is: " + str(i))
         # for each window size as based on the experts which is of length windowSize - 1
-        for w in range(windowSize - 1):
-            # for each corrThresh in the width which is P wide
-            for p in range(P):
-                # Apply the corn expert learning algorithm on this expert using its parameters
-                experts[(windowSize-1)*w + p].currPort = expertLearn(experts[(windowSize-1)*w + p].windowSize, experts[(windowSize-1)*w + p].corrThresh, i, data)
+        for w in range((windowSize - 1)*P):
+            experts[w].currPort = expertLearn(experts[w].windowSize, experts[w].corrThresh, i, data)
         # combine our experts' portfolios
         portfolio = np.zeros((numStocks,))
-        # update our total wealth
-        day = dayReturn(i,dates,data)
-        returns = np.append(returns, np.dot(portfolio, day))
+        day = dayReturn(i, dates, data)
         #update the experts' individual wealths
         expertDayEarly = experts
-        for m in range(windowSize-1):
-            for n in range(P):
-                experts[(windowSize-1)*m + n].increaseWealth(day) 
+        for m in range((windowSize-1)*P):
+            experts[m].increaseWealth(day)
+            # print(experts[m].wealthAchieved)
         # TOP-K and expert weights update
         # first need to find these top-K experts
         # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
@@ -389,15 +381,34 @@ def runCorn(dates, data, windowSize, P):
         todayPortDenom = np.zeros(numStocks)
         for x in range((windowSize-1)*P):
             if experts[x].weight != 0:
-                todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
-                todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+                try:
+                    todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
+                    todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+                except:
+                    print("ERROR AT DAY: " + str(i))
+                    print("ERROR ON EXPERT X: "+ str(x))
+                    print(experts[x].weight)
+                    print(experts[x].wealthAchieved)
+                    print(experts[x].currPort)
+                    input()
             else:
                 pass
         todayPort = todayPortNumerator / todayPortDenom
-        for x in range(numStocks):
-            print(x)
-            portfolioHist[x][i] = todayPort[x]
-
+        print("Sum of portfolio for today is :" + str(todayPort.sum()))
+        # print(todayPort)
+        # print("\n ------------------------- \n")
+        # print(today)
+        val = day @ todayPort
+        print("TODAY'S RETURN IS: " + str(val))
+        returns = np.append(returns,val)
+        # print(val.shape)
+        # print(val)
+        # input()
+        if val == 0:
+            print("VALUE IS 0 AT DAY" + str(i))
+        if i == 1000:
+            return returns
+    return returns
 data = readDataSet()
 dataset = cornDataRead()
 print(dataset)
@@ -432,4 +443,8 @@ print(type(experts))
 print(type(experts[0]))
 print(findTopK(experts))
 # # printExperts(experts,windowSize,P)
-runCorn(dates,dataset,windowSize,P)
+wealth = runCorn(dates,dataset,windowSize,P)
+print("Minimum value in wealth array: " + wealth.min())
+print("Maximum value in wealth array: " + wealth.max())
+plt.plot(wealth)
+plt.show()
