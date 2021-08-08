@@ -398,7 +398,7 @@ def runCorn(dates, data, windowSize, P):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 100:
+        if i == 600:
             return returns
     return returns
 data = readDataSet()
@@ -441,6 +441,6 @@ K = 5
 wealth = runCorn(dates,dataset,windowSize,P)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("TEMPSERVERCORNRETURNS.txt",wealth)
+np.savetxt("JSE500DAYCORNRETURNS.txt",wealth)
 # plt.plot(wealth)
 # plt.show()
