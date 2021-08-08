@@ -5,6 +5,9 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
 import math
+
+# TODO changethis to work with DRICORN-K
+
 # Need to construct a set of experts as required by CORN
 class Expert:
     """
@@ -193,17 +196,17 @@ def getDatesVec(data):
 def cornDataRead():
     name = input("Name of data set\n")
     if name == "BIS":
-        return np.loadtxt("BISPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/BISPRICERELATIVES.txt")
     elif name == "BOV":
-        return np.loadtxt("BOVPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/BOVPRICERELATIVES.txt")
     elif name == "EUR":
-        return np.loadtxt("EURPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/EURPRICERELATIVES.txt")
     elif name == "JSE":
-        return np.loadtxt("JSEPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/JSEPRICERELATIVES.txt")
     elif name == "NAS":
-        return np.loadtxt("NASPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/NASPRICERELATIVES.txt")
     elif name == "SP5":
-        return np.loadtxt("SP5PRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/SP5PRICERELATIVES.txt")
     else:
         print("ERROR INPUT CORRECT NAME")
         return cornDataRead()

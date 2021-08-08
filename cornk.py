@@ -193,17 +193,17 @@ def getDatesVec(data):
 def cornDataRead():
     name = input("Name of data set\n")
     if name == "BIS":
-        return np.loadtxt("BISPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/BISPRICERELATIVES.txt")
     elif name == "BOV":
-        return np.loadtxt("BOVPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/BOVPRICERELATIVES.txt")
     elif name == "EUR":
-        return np.loadtxt("EURPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/EURPRICERELATIVES.txt")
     elif name == "JSE":
-        return np.loadtxt("JSEPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/JSEPRICERELATIVES.txt")
     elif name == "NAS":
-        return np.loadtxt("NASPRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/NASPRICERELATIVES.txt")
     elif name == "SP5":
-        return np.loadtxt("SP5PRICERELATIVES.txt")
+        return np.loadtxt("./Data Sets/PriceRelatives/SP5PRICERELATIVES.txt")
     else:
         print("ERROR INPUT CORRECT NAME")
         return cornDataRead()
@@ -398,7 +398,7 @@ def runCorn(dates, data, windowSize, P):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 800:
+        if i == 100:
             return returns
     return returns
 data = readDataSet()
