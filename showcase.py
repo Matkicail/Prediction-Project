@@ -10,43 +10,54 @@ from CRP import UCRP
 from scipy import stats
 
 data = readDataSet()
-name = "BOV500"
-# bestStock = np.log(bestStockStrategy(data))
-# ubahPort = np.log(ubah(data))
-# crpPort = np.log(UCRP(data))
-# bestStock = np.log(bestStockStrategy(data))
-# cornReturns = np.log(np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt"))
-# racornReturns = np.log(np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt"))
+name = "EUR500"
+bestStock = np.log(bestStockStrategy(data))
+ubahPort = np.log(ubah(data))
+crpPort = np.log(UCRP(data))
+bestStock = np.log(bestStockStrategy(data))
+cornReturns = np.log(np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt"))
+racornReturns = np.log(np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt"))
+dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt"))
 
 # bestStock = bestStockStrategy(data)
 # ubahPort = ubah(data)
 # crpPort = UCRP(data)
 # cornReturns = np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt")
 # racornReturns = np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt")
+# dricornReturns = np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt")
 
 # box-cox transform showcase
-bestStock = bestStockStrategy(data)
-ubahPort = ubah(data)
-crpPort = UCRP(data)
-cornReturns = np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt")
-racornReturns = np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt")
-numDays = len(cornReturns)
-bestStock, bestStock_lambda = stats.boxcox(bestStockStrategy(data[0:numDays]))
-ubahPort, ubah_lambda = stats.boxcox(ubahPort[0:numDays])
-crpPortPort, crpPort_lambda = stats.boxcox(crpPort[0:numDays])
-cornReturns, cornReturns_lambda = stats.boxcox(cornReturns)
-racornReturns, racornReturns_lambda = stats.boxcox(racornReturns)
+# bestStock = bestStockStrategy(data)
+# ubahPort = ubah(data)
+# crpPort = UCRP(data)
+# cornReturns = np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt")
+# racornReturns = np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt")
+# dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt"))
+# numDays = len(cornReturns)
+# bestStock, bestStock_lambda = stats.boxcox(bestStockStrategy(data[0:numDays]))
+# ubahPort, ubah_lambda = stats.boxcox(ubahPort[0:numDays])
+# crpPortPort, crpPort_lambda = stats.boxcox(crpPort[0:numDays])
+# cornReturns, cornReturns_lambda = stats.boxcox(cornReturns)
+# racornReturns, racornReturns_lambda = stats.boxcox(racornReturns)
+# dricornReturns , dricornReturns_lambda stats.boxcox(dricornReturns)
 
 numDays = len(cornReturns)
 if len(racornReturns) < numDays:
     cornReturns = cornReturns[0:len(racornReturns)]
+    numDays = len(racornReturns)
+if len(dricornReturns) < numDays:
+    numDays = len(dricornReturns)
+    cornReturns = cornReturns[0:len(numDays)]
+    cornReturns = cornReturns[0:len(numDays)]
+numDays = 400
 plt.title("Comparison of Strategies")
 plt.xlabel("Number of Days")
 plt.ylabel("Total Return")
 plt.plot(bestStock[0:numDays], label="Best Stock")
 plt.plot(ubahPort[0:numDays], label="UBAH")
 plt.plot(crpPort[0:numDays], label="CRP")
-plt.plot(cornReturns, label="CORN")
-plt.plot(racornReturns, label="RACORN")
+plt.plot(cornReturns[0:numDays], label="CORN")
+plt.plot(racornReturns[0:numDays], label="RACORN")
+plt.plot(dricornReturns[0:numDays], label="DRICORN")
 plt.legend()
 plt.show()

@@ -70,6 +70,18 @@ def getUniformPort():
     stocks = np.ones((numStocks))
     return stocks / numStocks
 
+def primitiveBeta(portReturns, marketReturns):
+    mktMean  = np.mean(marketReturns)
+    portMean = np.mean(portReturns)
+    devSum = 0
+    for i in range(len(portReturns)):
+        portDev = portReturns[i] - portMean
+        mktDev = marketReturns[i] - mktMean
+        devSum += (portDev * mktDev)
+    if len(portReturns) > 1:
+        return devSum/(len(portReturns) - 1)
+    else:
+        return devSum
 def objective(portfolio, days, setSize):
     """
     Ensuring that days is a vector/matrix where width is number of days and length is numStocks.
@@ -85,7 +97,7 @@ def objective(portfolio, days, setSize):
         portsReturns = np.append(portsReturns, days[:,i].max()) 
         marketReturns = np.append(marketReturns, uniformPort @ days[:,i])
 
-    associatedRisk = riskAv * (np.cov(portsReturns, marketReturns)/np.var(marketReturns)).flatten().max()
+    associatedRisk = riskAv * primitiveBeta(portsReturns, marketReturns)
     total += associatedRisk
     # Return negative portfolio so that we can minimise (hence maximising the portfolio)
     # print(total)
@@ -94,29 +106,16 @@ def objective(portfolio, days, setSize):
 def constraintSumOne(portfolio):
     prob = 1
     for i in portfolio:
-        prob -= 1
+        prob -= i
+    # print(prob)
+    # print(np.round(portfolio))
     return prob
 
 def boundsCreator():
-    b = (0,1)
-    # BOV
-    if numStocks == 28:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # BIS & EUR
-    elif numStocks == 46:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # JSE
-    elif numStocks == 38:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # NAS
-    elif numStocks == 41:
-        return(b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # SP5
-    elif numStocks == 47:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    else:
-        print("THE NUMBER OF STOCKS IS :" + str(numStocks))
-        input("ERROR \n")
+    b = (0.0,1.0)
+    a = [b]*numStocks
+    return a
+
 def initialGuess(days, sizeSet):
     port = np.zeros((numStocks))
     for i in range(sizeSet):
@@ -194,12 +193,14 @@ def expertLearn(window, corrThresh, day, data):
         # print("\n\n")
         # print(bnds)
         # print("\n\n")
-        sol = minimize(objective, initGuess, args=(corrSimSetDays, len(corrSimSet)), method='SLSQP', bounds = bnds, tol=1e-3)
+        # input()
+        sol = minimize(objective, initGuess, args=(corrSimSetDays, len(corrSimSet)), method='SLSQP', bounds = bnds, constraints=cons)
         # print(sol)
         # print(tempAgentPort)
         # print(-sol.jac)
         if sol.success == True:
-            return -sol.jac
+            # print(-sol.x)
+            return sol.x
         else:
             print("could not optimise so will return CORN PORT")
             tempRelative = 0
@@ -492,7 +493,7 @@ def runCorn(dates, data, windowSize, P):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 800:
+        if i == 500:
             return returns
     return returns
 data = readDataSet()
@@ -520,10 +521,10 @@ print("Maximum value in wealth array: " + str(wealth.max()))
 
 # remove comment from the data set we want to look into and then change the number of days as required
 
-# np.savetxt("BIS500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("BOV500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("BOV800DAYCORNRETURNS.txt",wealth)
-# np.savetxt("EUR500DAYCORNRETURNS.txt",wealth)
-np.savetxt("JSE500DAYDRICORNRETURNS.txt",wealth)
+# np.savetxt("BIS500DAYDRICORNRETURNS.txt",wealth)
+np.savetxt("BOV500DAYDRICORNRETURNS.txt",wealth)
+# np.savetxt("BOV800DAYDRICORNRETURNS.txt",wealth)
+# np.savetxt("EUR500DAYDRICORNRETURNS.txt",wealth)
+# np.savetxt("JSE500DAYDRICORNRETURNS.txt",wealth)
 # plt.plot(wealth)
 # plt.show()

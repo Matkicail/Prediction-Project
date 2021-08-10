@@ -5,6 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
 import math
+from scipy.optimize import minimize 
 # Need to construct a set of experts as required by CORN
 class Expert:
     """
@@ -63,6 +64,36 @@ def getUniformPort():
     stocks = np.ones((numStocks))
     return stocks / numStocks
 
+def objective(portfolio, days, setSize):
+    """
+    Ensuring that days is a vector/matrix where width is number of days and length is numStocks.
+    """
+    total = 1
+    for i in range(days.shape[1]) :
+        total *= portfolio @ days[:,i]
+    # Return negative portfolio so that we can minimise (hence maximising the portfolio)
+    return -total
+
+def constraintSumOne(portfolio):
+    prob = 1
+    for i in portfolio:
+        prob -= i
+    return prob
+
+def boundsCreator():
+    b = (0.0,1.0)
+    a = [b]*numStocks
+    return a
+
+def initialGuess(days, sizeSet):
+    port = np.zeros((numStocks))
+    for i in range(sizeSet):
+        bestStock = np.argmax(days[:,i]) 
+        port[bestStock] += 1
+    port /= port.sum()
+    
+    return port
+
 def expertLearn(window, corrThresh, day, data):
     """
     Preform algorithm 1 from CORN paper.
@@ -108,28 +139,49 @@ def expertLearn(window, corrThresh, day, data):
         # Search for the optimal portfolio
         # so using the i in the set, get the argmax
         # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
+
+        # TODO ADD CHANGES BASED ON DRICORN-K (so here construct a portfolio based on their optimals)
+        # do not need a temp relative just find the sub portfolios, log them, divide by the number in the corrSimSet
+        # then minus the deviation
+        # from here normalise the portfolio so that the required portfolio property is maintained
         tempRelative = 0
-        bestDay = -1
         port = np.zeros((numStocks))
         print("I found this many in my corrSimSet: " + str(len(corrSimSet)))
-        for i in corrSimSet:
-            # get the price relative vector for the day
-            priceRelative = dayReturn(i,dates,data)
-            # index of maximum change 
-            # day = dayReturn(i,dates,data)
-            # day = day.reshape((numStocks,1))
-            temp = priceRelative.max()
-            if day == -1:
-                print("Error occurred at day " + str(i) + " Stuff went terribly inside expert learn")
-            else:
-                if tempRelative < temp:
-                    bestDay = i
-                    temp = priceRelative.max()
-                    port = np.zeros((numStocks))
-                    # print(tempRelative)
-                    port[np.argmax(priceRelative,axis=0)] = 1
-        # print("WAS ABLE TO FIND AN OPTIMAL PORT")
-        return port
+        corrSimSetDays = np.empty((numStocks,len(corrSimSet)))
+        # print(corrSimSetDays.shape)
+        # print(numStocks)
+        for i in range(len(corrSimSet)):
+            corrSetDay = dayReturn(corrSimSet[i], dates, data)
+            for x in range(numStocks):
+                corrSimSetDays[x][i] = corrSetDay[x]
+        initGuess = initialGuess(corrSimSetDays, len(corrSimSet))
+        bnds = boundsCreator()
+        con1 = {'type': 'eq' , 'fun': constraintSumOne}
+        cons = [con1]
+        sol = minimize(objective, initGuess, args=(corrSimSetDays, len(corrSimSet)), method='SLSQP', bounds = bnds, constraints=cons)
+        if sol.success == True:
+            return sol.x
+        else:
+            print("could not optimise so will return CORN PORT")
+            tempRelative = 0
+            bestDay = -1
+            port = np.zeros((numStocks))
+            print("I found this many in my corrSimSet: " + str(len(corrSimSet)))
+            for i in corrSimSet:
+                # get the price relative vector for the day
+                priceRelative = dayReturn(i,dates,data)
+                temp = priceRelative.max()
+                if day == -1:
+                    print("Error occurred at day " + str(i) + " Stuff went terribly inside expert learn")
+                else:
+                    if tempRelative < temp:
+                        bestDay = i
+                        temp = priceRelative.max()
+                        port = np.zeros((numStocks))
+                        # print(tempRelative)
+                        port[np.argmax(priceRelative,axis=0)] = 1
+            # print("WAS ABLE TO FIND AN OPTIMAL PORT")
+            return port
         
 def dayReturn(day, dates, data):
     """
@@ -441,6 +493,10 @@ K = 5
 wealth = runCorn(dates,dataset,windowSize,P)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("JSE500DAYCORNRETURNS.txt",wealth)
+# np.savetxt("BIS500DAYCORNRETURNS.txt",wealth)
+np.savetxt("BOV500DAYCORNRETURNS.txt",wealth)
+# np.savetxt("BOV800DAYCORNRETURNS.txt",wealth)
+# np.savetxt("EUR500DAYCORNRETURNS.txt",wealth)
+# np.savetxt("JSE500DAYCORNRETURNS.txt",wealth)
 # plt.plot(wealth)
 # plt.show()

@@ -27,7 +27,7 @@ class Expert:
         self.numStocks = numStocks
         self.weight = 0
         # initial wealth as based on page 12 note
-        self.wealthAchieved = 1
+        self.wealthAchieved = initWealth
         self.currPort = None
         self.portHistory = np.empty((numStocks, numDays))
         
@@ -58,7 +58,7 @@ class Expert:
         Note that this is meant to take in the day's (i.e at time t) price relative vector.
         """
         # need to set a self wealth for each specific agent
-        self.wealthAchieved = self.wealthAchieved * (self.currPort @ priceVector)
+        self.wealthAchieved = self.wealthAchieved * (self.currPort @ priceVector) - (self.currPort @ priceVector)*0.01
 
 def getUniformPort():
     """
@@ -81,35 +81,19 @@ def objective(portfolio, days, setSize):
     total /= setSize
     total -= riskAv * np.std(associatedRisk)
     # Return negative portfolio so that we can minimise (hence maximising the portfolio)
-    tempAgentPort = portfolio
     return -total
 
 def constraintSumOne(portfolio):
     prob = 1
     for i in portfolio:
-        prob -= 1
+        prob -= i
     return prob
 
 def boundsCreator():
-    b = (0,1)
-    # BOV
-    if numStocks == 28:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # BIS & EUR
-    elif numStocks == 46:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # JSE
-    elif numStocks == 38:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # NAS
-    elif numStocks == 41:
-        return(b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    # SP5
-    elif numStocks == 47:
-        return (b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b,b)
-    else:
-        print("THE NUMBER OF STOCKS IS :" + str(numStocks))
-        input("ERROR \n")
+    b = (0.0,1.0)
+    a = [b]*numStocks
+    return a
+
 def initialGuess(days, sizeSet):
     port = np.zeros((numStocks))
     for i in range(sizeSet):
@@ -187,12 +171,15 @@ def expertLearn(window, corrThresh, day, data):
         # print("\n\n")
         # print(bnds)
         # print("\n\n")
-        sol = minimize(objective, initGuess, args=(corrSimSetDays, len(corrSimSet)), method='SLSQP', bounds = bnds, tol=1e-3)
+        sol = minimize(objective, initGuess, args=(corrSimSetDays, len(corrSimSet)), method='SLSQP', bounds = bnds, constraints=cons)
         # print(sol)
         # print(tempAgentPort)
         # print(-sol.jac)
         if sol.success == True:
-            return -sol.jac
+            # print(-sol.x)
+            # print("total probability :" + str(np.sum(-sol.x)) + "\n")
+            # input()
+            return sol.x
         else:
             print("could not optimise so will return uniform")
             return uniformPort
@@ -411,7 +398,7 @@ def runCorn(dates, data, windowSize, P):
     # create experts which a 1D array
     experts = initExperts(windowSize,numStocks,P)
     # going downwards window size increases, going rightwards the corrThresh increases
-    totReturn = 1
+    totReturn = initWealth
     # starting from first day to the final day
     # first day we get an initial wealth of 0 (t = 0)
     returns = np.array(())
@@ -464,7 +451,7 @@ def runCorn(dates, data, windowSize, P):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 800:
+        if i == 500:
             return returns
     return returns
 data = readDataSet()
@@ -484,6 +471,7 @@ windowSize = 5
 P = 10
 K = 5
 riskAv = 0.03
+initWealth = 700000
 global tempAgentPort
 tempAgentPort = np.empty(numStocks)
 wealth = runCorn(dates,dataset,windowSize,P)
@@ -492,10 +480,10 @@ print("Maximum value in wealth array: " + str(wealth.max()))
 
 # remove comment from the data set we want to look into and then change the number of days as required
 
-# np.savetxt("BIS500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("BOV500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("BOV800DAYCORNRETURNS.txt",wealth)
-# np.savetxt("EUR500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("JSE500DAYCORNRETURNS.txt",wealth)
+# np.savetxt("BIS500DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("BOV500DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("BOV800DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("EUR500DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("JSE500DAYRACORNRETURNS.txt",wealth)
 # plt.plot(wealth)
 # plt.show()
