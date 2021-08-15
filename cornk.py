@@ -355,7 +355,7 @@ def initExperts(windowSize, numStocks, P):
     for i in range(0,windowSize-1):
         for j in range(P):
             # __init__(self, windowSize, corrThresh, numStocks, numDays):
-            expert = Expert(i,j/P, numStocks, len(dates))
+            expert = Expert(i+1,j/P, numStocks, len(dates))
             experts.append(expert)
     return experts
 
@@ -493,10 +493,11 @@ K = 5
 wealth = runCorn(dates,dataset,windowSize,P)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-# np.savetxt("BIS500DAYCORNRETURNS.txt",wealth)
-np.savetxt("BOV500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("BOV800DAYCORNRETURNS.txt",wealth)
-# np.savetxt("EUR500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("JSE500DAYCORNRETURNS.txt",wealth)
+np.savetxt("./Data Sets/CORNK/BIS600DAYCORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/CORNK/BOV600DAYCORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/CORNK/BOV800DAYCORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/CORNK/EUR500DAYCORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/CORNK/JSE600DAYCORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/CORNK/temp.txt",wealth)
 # plt.plot(wealth)
 # plt.show()

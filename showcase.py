@@ -10,11 +10,11 @@ from CRP import UCRP
 from scipy import stats
 
 data = readDataSet()
-name = "EUR500"
-bestStock = np.log(bestStockStrategy(data))
+name = "BIS600"
+# bestStock = np.log(bestStockStrategy(data))
 ubahPort = np.log(ubah(data))
 crpPort = np.log(UCRP(data))
-bestStock = np.log(bestStockStrategy(data))
+# bestStock = np.log(bestStockStrategy(data))
 cornReturns = np.log(np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt"))
 racornReturns = np.log(np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt"))
 dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt"))
@@ -41,23 +41,18 @@ dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNR
 # racornReturns, racornReturns_lambda = stats.boxcox(racornReturns)
 # dricornReturns , dricornReturns_lambda stats.boxcox(dricornReturns)
 
-numDays = len(cornReturns)
-if len(racornReturns) < numDays:
-    cornReturns = cornReturns[0:len(racornReturns)]
-    numDays = len(racornReturns)
-if len(dricornReturns) < numDays:
-    numDays = len(dricornReturns)
-    cornReturns = cornReturns[0:len(numDays)]
-    cornReturns = cornReturns[0:len(numDays)]
-numDays = 400
+
+
+numDays = 600
+
 plt.title("Comparison of Strategies")
 plt.xlabel("Number of Days")
 plt.ylabel("Total Return")
-plt.plot(bestStock[0:numDays], label="Best Stock")
+# plt.plot(bestStock[0:numDays], label="Best Stock")
 plt.plot(ubahPort[0:numDays], label="UBAH")
 plt.plot(crpPort[0:numDays], label="CRP")
-plt.plot(cornReturns[0:numDays], label="CORN")
-plt.plot(racornReturns[0:numDays], label="RACORN")
-plt.plot(dricornReturns[0:numDays], label="DRICORN")
+plt.plot(cornReturns, label="CORN")
+plt.plot(racornReturns, label="RACORN")
+plt.plot(dricornReturns, label="DRICORN")
 plt.legend()
 plt.show()

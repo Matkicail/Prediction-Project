@@ -356,7 +356,7 @@ def initExperts(windowSize, numStocks, P):
     for i in range(0,windowSize-1):
         for j in range(P):
             # __init__(self, windowSize, corrThresh, numStocks, numDays):
-            expert = Expert(i,j/P, numStocks, len(dates))
+            expert = Expert(i+1,j/P, numStocks, len(dates))
             experts.append(expert)
     return experts
 
@@ -451,7 +451,7 @@ def runCorn(dates, data, windowSize, P):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 500:
+        if i == 600:
             return returns
     return returns
 data = readDataSet()
@@ -471,7 +471,7 @@ windowSize = 5
 P = 10
 K = 5
 riskAv = 0.03
-initWealth = 700000
+initWealth = 1
 global tempAgentPort
 tempAgentPort = np.empty(numStocks)
 wealth = runCorn(dates,dataset,windowSize,P)
@@ -480,10 +480,10 @@ print("Maximum value in wealth array: " + str(wealth.max()))
 
 # remove comment from the data set we want to look into and then change the number of days as required
 
-# np.savetxt("BIS500DAYRACORNRETURNS.txt",wealth)
-# np.savetxt("BOV500DAYRACORNRETURNS.txt",wealth)
-# np.savetxt("BOV800DAYRACORNRETURNS.txt",wealth)
-# np.savetxt("EUR500DAYRACORNRETURNS.txt",wealth)
-# np.savetxt("JSE500DAYRACORNRETURNS.txt",wealth)
+np.savetxt("./Data Sets/RACORNK/BIS600DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/RACORNK/BOV600DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/RACORNK/BOV800DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/RACORNK/EUR500DAYRACORNRETURNS.txt",wealth)
+# np.savetxt("./Data Sets/RACORNK/JSE600DAYRACORNRETURNS.txt",wealth)
 # plt.plot(wealth)
 # plt.show()
