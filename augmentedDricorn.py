@@ -60,6 +60,7 @@ class Expert:
         """
         # need to set a self wealth for each specific agent
         self.wealthAchieved = self.wealthAchieved * (self.currPort @ priceVector)
+    
 
 def getUniformPort():
     """
@@ -397,6 +398,19 @@ def findTopK(experts):
         expertsWealth[currBest] = -999
     return indicesBest
 
+def beginUniformStart(dates, data, trainSize, experts, windowSize, P):
+    returns = np.array(())
+    returns = np.append(returns, 1)
+    for i in range(0,trainSize):
+        today = dayReturn(i, dates, data)
+        val = today @ uniformPort
+        returns = np.append(returns, val)
+        print("I is: " + str(i))
+        print("TOTAL RETURN AT CURRENT IS: " + str(val))
+
+    for i in range((windowSize - 1)*P):
+        experts[i].wealthAchieved = returns[-1]
+    return returns, experts
 # No reliance on dataframe data
 def runCorn(dates, data, windowSize, P, trainSize, numCluster):
     """
@@ -411,6 +425,7 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
     # first day we get an initial wealth of 0 (t = 0)
     returns = np.array(())
     returns = np.append(returns,1)
+
     dataPointsWindows = []
     centroidsWindows = []
     if trainSize > 0:
@@ -423,6 +438,8 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
             centroidsWindows.append(tempCentroids)
     if numCluster == 0:
         numCluster = 1
+
+    returns, experts = beginUniformStart(dates, data, trainSize, experts, windowSize, P)
 
     for i in range(trainSize,len(dates)):
         print("i is: " + str(i))
@@ -637,12 +654,12 @@ uniformPort = np.ones((numStocks)) / numStocks
 windowSize = 5
 P = 10
 K = 5
-tol = 1e-3
+tol = 1e-2
 numCluster = 5
 trainSize = 50
-freqRandom = 4
+freqRandom = 5
 
 wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("./hopeOfJared.txt",wealth)
+np.savetxt("./hopeOfJaredTwo.txt",wealth)
