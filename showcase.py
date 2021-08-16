@@ -10,21 +10,21 @@ from CRP import UCRP
 from scipy import stats
 
 data = readDataSet()
-name = "BIS600"
+name = "JSE600"
 # bestStock = np.log(bestStockStrategy(data))
-ubahPort = np.log(ubah(data))
-crpPort = np.log(UCRP(data))
-# bestStock = np.log(bestStockStrategy(data))
-cornReturns = np.log(np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt"))
-racornReturns = np.log(np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt"))
-dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt"))
+# ubahPort = np.log(ubah(data))
+# crpPort = np.log(UCRP(data))
+# # bestStock = np.log(bestStockStrategy(data))
+# cornReturns = np.log(np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt"))
+# racornReturns = np.log(np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt"))
+# dricornReturns = np.log(np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt"))
 
 # bestStock = bestStockStrategy(data)
-# ubahPort = ubah(data)
-# crpPort = UCRP(data)
-# cornReturns = np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt")
-# racornReturns = np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt")
-# dricornReturns = np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt")
+ubahPort = ubah(data)
+crpPort = UCRP(data)
+cornReturns = np.loadtxt("./Data Sets/CORNK/" + name + "DAYCORNRETURNS.txt")
+racornReturns = np.loadtxt("./Data Sets/RACORNK/" + name + "DAYRACORNRETURNS.txt")
+dricornReturns = np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt")
 
 # box-cox transform showcase
 # bestStock = bestStockStrategy(data)

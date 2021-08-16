@@ -47,13 +47,19 @@ class kDataPoint:
         print("I set up")
     
     def calcDist(self, cluster):
-        distMarketMean = np.abs(self.marketMean - cluster.marketMean)
-        distMarketVar = np.abs(self.marketVar - cluster.marketVar)
-        tempMean = np.abs(self.stockMeans - cluster.stockMeans)
-        tempVar = np.abs(self.stockVars - cluster.stockVars)
-        dist = distMarketMean + distMarketVar + np.sum(tempMean) + np.sum(tempVar)
-        dist = np.sqrt(dist)
-        return dist
+        if cluster.marketMean is not None:
+            try:
+                distMarketMean = np.abs(self.marketMean - cluster.marketMean)
+                distMarketVar = np.abs(self.marketVar - cluster.marketVar)
+                tempMean = np.abs(self.stockMeans - cluster.stockMeans)
+                tempVar = np.abs(self.stockVars - cluster.stockVars)
+                dist = distMarketMean + distMarketVar + np.sum(tempMean) + np.sum(tempVar)
+                # dist = np.sqrt(dist)
+                return dist
+            except:
+                return 1e+9
+        else:
+            return 1e+9
 
     def reassignCluster(self, clusters):
         # Distance vastly too large so we can find a good minimum distance

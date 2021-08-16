@@ -17,6 +17,8 @@ class kCentroid:
         self.stockMeans = None
         # id of a cluster should be between 0 and numCluster-1
         self.id = -1
+        # for simplicity later
+        self.alive = True
 
     def setKCentroidID(self, id):
         # assocs will be how many centroids a given data point can be associated to
@@ -34,7 +36,7 @@ class kCentroid:
                 centoridMarketVars = np.append(centoridMarketVars, i.marketVar)
                 centroidMarketMeans = np.append(centroidMarketMeans, i.marketMean)
                 centroidStockVars[:,count] = i.stockVars
-                centroidStockMeans[:,count] = i.stockMeans
+                centroidStockMeans[:,count] = i.stockMeans.flatten()
                 count += 1
             self.marketVar = np.mean(centoridMarketVars)
             self.marketMean = np.mean(centroidMarketMeans)
@@ -47,10 +49,11 @@ class kCentroid:
             self.stockVars = assignedCentroids.stockVars
             self.stockMeans = assignedCentroids.stockMeans
         else:
-            self.marketVar = -1
-            self.marketMean = -1
-            self.stockVars = -1
-            self.stockMeans = -1
+            self.marketVar = -10
+            self.marketMean = -10
+            self.stockVars = -10
+            self.stockMeans = -10
+            self.alive = False
 
     def printCluster(self):
         print("K Means Centroid, following att:\n")
