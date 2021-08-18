@@ -423,7 +423,9 @@ def reAdjustKMeans(dataPointsWindows, data, centroidsWindows, trainSize, windowS
     # input()
     if trainSize > 0:
         for i in range(1, windowSize+1):
-            tempData = createPoints(trainSize, i, data, startDate, startDate + trainSize)
+            # tempData = createPoints(trainSize, kWindowSize, marketData, startDate, trainSize)
+            # createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
+            tempData = createPoints(trainSize-1, i, data, endDate - trainSize -1, endDate)
             tempCentroids = generateCentroids(numCluster)
             randomAssignCentroids(tempData, numCluster)
             reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
@@ -486,11 +488,26 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
                 reAdjustDataAssign(centroidsWindows[w-1], dataPointsWindows[w-1], numCluster, tol)
         if i % 3 * freqRandom == 0:
             numCluster += 1
-        if i % (2*trainSize) == 0:
-            numCluster = 4
-            marketWindow = data[:,i-trainSize-1:i-1]
-            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindows, trainSize, windowSize, P, numCluster, i, tol)
-            print("========READJUSTED DATASET========")
+        # if i % (2*trainSize) == 0:
+        #     numCluster = 4
+        #     dataPointsWindows = []
+        #     centroidsWindows = []
+        #     print("\t READJUSTING - THE END DATE IS: " + str(i))
+        #     print("\t READJUSTING - THE START DATE IS: " + str(i - trainSize - 1))
+        #     print("\t READJUSTING - TRAINSIZE IS: " + str(trainSize))
+        #     # input()
+        #     if trainSize > 0:
+        #         for w in range(1, windowSize+1):
+        #             # tempData = createPoints(trainSize, kWindowSize, marketData, startDate, trainSize)
+        #             # createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
+        #             clusterData = data[:,i - trainSize:i-1]
+        #             tempData = createPoints(trainSize-1, w, clusterData, i - trainSize, i-1)
+        #             tempCentroids = generateCentroids(numCluster)
+        #             randomAssignCentroids(tempData, numCluster)
+        #             reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
+        #             dataPointsWindows.append(tempData)
+        #             centroidsWindows.append(tempCentroids)
+
         portfolio = np.zeros((numStocks,))
         day = dayReturn(i, dates, data)
         #update the experts' individual wealths
@@ -703,12 +720,11 @@ windowSize = 5
 P = 10
 K = 5
 tol = 1e-2
-numCluster = 6
-trainSize = 30  
+numCluster = 4
+trainSize = 10
 freqRandom = 3
 startDate = 1500
 ENDdate = 1900
-dayRange = str(startDate) + "-" + str(ENDdate)
 showcase = "flat"
 market = "jse"
 train = "TrainSize" + str(trainSize) + ".txt"
@@ -717,4 +733,4 @@ train = "TrainSize" + str(trainSize) + ".txt"
 wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("./"+dayRange+showcase+market+train,wealth)
+np.savetxt("./"+showcase+market+train,wealth)
