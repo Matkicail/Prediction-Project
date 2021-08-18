@@ -7,16 +7,35 @@ from stockMarketReader import readDataSet
 # Implementing the CRP Portfolio Benchmark #
 # ######################################## #
 
-def UCRP(data):
+def getDatesVec(data):
+    """
+    Get the vector of dates that spans a given stock market data set - specifically done for CORN algorithm but not exclusive to it
+    note that this requires the pandas dataframe of data
+    NOTE pandas dataframe for data
+    """
+    startDate = data.Date.min()
+    startDate = data[data['Date'] == startDate]
+    startDate = startDate.Ticker.to_numpy()
+    tick = np.unique(startDate)[0]
+    tickerDates = data[data['Ticker'] == tick]
+    tickerDates = np.unique(data.Date.to_numpy())
+    return tickerDates
+
+def UCRP(data, startAt, stopAt):
     """
     A function that given a data set will return a constantly rebalanced portfolio.
     TODO check the JSE returns to make sure this program actually works, feels a bit dodgy on that one for that day.
     NOTE THIS IS THE UNIFORM CONSTANTLY REBALANCED PORTFOLIO - AS DESCRIBED IN CORN PAPER
     """
-    startDate = data.Date.min()
+    dates = getDatesVec(data)
+    startDate = dates[startAt]
+    endDate = dates[stopAt]
+    dates = dates[startAt:stopAt]
     startPrices = data[data['Date'] == startDate]
     numStocks = len(np.unique(startPrices.Ticker.to_numpy()))
     tick = np.unique(startPrices.Ticker.to_numpy())[0]
+    data = data[data['Date'] >= startDate]
+    data = data[data['Date'] < endDate]
     dates = data[data['Ticker'] == tick]
     dates = dates.Date.to_numpy()
     propPort = 1 / numStocks

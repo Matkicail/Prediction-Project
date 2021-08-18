@@ -3,22 +3,41 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from stockMarketReader import readDataSet
+def getDatesVec(data):
+    """
+    Get the vector of dates that spans a given stock market data set - specifically done for CORN algorithm but not exclusive to it
+    note that this requires the pandas dataframe of data
+    NOTE pandas dataframe for data
+    """
+    startDate = data.Date.min()
+    startDate = data[data['Date'] == startDate]
+    startDate = startDate.Ticker.to_numpy()
+    tick = np.unique(startDate)[0]
+    tickerDates = data[data['Ticker'] == tick]
+    tickerDates = np.unique(data.Date.to_numpy())
+    return tickerDates
 
-def ubah(data):
+def ubah(data, startAt, stopAt):
     """
     Given a data set, preform a uniform buy and hold strategy.
     Thus divide the initial capital (1) amongst all assets equally and track the return.
     This will return the total return at each day, sequentially for a universal portfolio.
     """
-    startDate = data.Date.min()
+    dates = getDatesVec(data)
+    startDate = dates[startAt]
+    endDate = dates[stopAt]
+    dates = dates[startAt:stopAt]
     startPrices = data[data['Date'] == startDate]
     numStocks = len(np.unique(startPrices.Ticker.to_numpy()))
     tick = np.unique(startPrices.Ticker.to_numpy())[0]
-    print("Ticker ")
-    print(tick)
+    # print("Ticker ")
+    # print(tick)
+    data = data[data['Date'] >= startDate]
+    data = data[data['Date'] < endDate]
     dates = data[data['Ticker'] == tick]
     print(dates)
     dates = dates.Date.to_numpy()
+    # dates = dates[startDate:endDate]
     propPort = 1 / numStocks
     # getting the init prop of a stock we can own
     # this will assume that this will come out in the right order - which it should

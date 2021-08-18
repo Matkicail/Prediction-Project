@@ -137,7 +137,7 @@ def expertLearn(window, corrThresh, day, data, dataPoints):
                 # append this to our set i.e add the index
                 corrSimSet = np.append(corrSimSet,i.day)
             # print("Test 6")
-    if len(corrSimSet) == 0 and window < 4:
+    if len(corrSimSet) == 0 and window < 3:
         # print("Empty set")
         return uniformPort
     else:
@@ -412,7 +412,27 @@ def beginUniformStart(dates, data, trainSize, experts, windowSize, P):
         experts[i].wealthAchieved = returns[-1]
     return returns, experts
 # No reliance on dataframe data
-def runCorn(dates, data, windowSize, P, trainSize, numCluster):
+
+def reAdjustKMeans(dataPointsWindows, data, centroidsWindows, trainSize, windowSize, P, numCluster, endDate, tol):
+    #reAdjustKMeans(dataPointsWindows, data, centroidsWindows, 2*trainSize, windowSize, P, numCluster, i, tol, endDate)
+    dataPointsWindows = []
+    centroidsWindows = []
+    print("\t READJUSTING - THE END DATE IS: " + str(endDate))
+    print("\t READJUSTING - THE START DATE IS: " + str(endDate - trainSize - 1))
+    print("\t READJUSTING - TRAINSIZE IS: " + str(trainSize))
+    # input()
+    if trainSize > 0:
+        for i in range(1, windowSize+1):
+            tempData = createPoints(trainSize, i, data, startDate, startDate + trainSize)
+            tempCentroids = generateCentroids(numCluster)
+            randomAssignCentroids(tempData, numCluster)
+            reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
+            dataPointsWindows.append(tempData)
+            centroidsWindows.append(tempCentroids)
+
+    return dataPointsWindows, centroidsWindows
+
+def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
     """
     Run the CORN-K algorithm on the data set
     TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
@@ -429,8 +449,15 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
     dataPointsWindows = []
     centroidsWindows = []
     if trainSize > 0:
+        marketData = data[:,startDate:startDate + trainSize-1]
         for i in range(1, windowSize+1):
-            tempData = createPoints(trainSize, i, data)
+            # tempData = def createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
+            tempData = createPoints(trainSize, i, marketData, startDate, startDate + trainSize)
+            print("==============FOR INITIALISATION==============")
+            print("\t Start Date is: " + str(startDate))
+            print("\t End Date is: " + str(startDate + trainSize - 1))
+            print("\t TrainSize is: " + str(trainSize - 1))
+            # input()
             tempCentroids = generateCentroids(numCluster)
             randomAssignCentroids(tempData, numCluster)
             reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
@@ -441,8 +468,8 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
 
     returns, experts = beginUniformStart(dates, data, trainSize, experts, windowSize, P)
 
-    for i in range(trainSize,len(dates)):
-        print("i is: " + str(i))
+    for i in range(trainSize+startDate,len(dates)):
+        print("I is: " + str(i))
         # for each window size as based on the experts which is of length windowSize - 1
         for w in range((windowSize - 1)*P):
             tempPoints = dataPointsWindows[w//P]
@@ -450,7 +477,7 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
             experts[w].currPort = expertLearn(experts[w].windowSize, experts[w].corrThresh, i, data, tempPoints)
         # combine our experts' portfolios
         for w in range(1,windowSize+1):
-            marketData = data[:,i-w:i]
+            marketData = data[:,i-w-1:i-1]
             addNewDataPoint(centroidsWindows[w-1], dataPointsWindows[w-1], marketData, i, w)
             if i % freqRandom == 0:
                 centroids = generateCentroids(numCluster)
@@ -459,6 +486,11 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
                 reAdjustDataAssign(centroidsWindows[w-1], dataPointsWindows[w-1], numCluster, tol)
         if i % 3 * freqRandom == 0:
             numCluster += 1
+        if i % (2*trainSize) == 0:
+            numCluster = 4
+            marketWindow = data[:,i-trainSize-1:i-1]
+            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindows, trainSize, windowSize, P, numCluster, i, tol)
+            print("========READJUSTED DATASET========")
         portfolio = np.zeros((numStocks,))
         day = dayReturn(i, dates, data)
         #update the experts' individual wealths
@@ -500,17 +532,29 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster):
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 600:
+        if i == ENDdate:
             return returns
     return returns
 
 # new stuff from our kMeansMarket to test this out
-def createPoints(trainSize, kWindowSize, marketData):
+def createPoints(trainSize, kWindowSize, marketData, startDate, endDate):
     """
     A function that creates data points using a given window size and a market of price relatives.
     """
     dataPoints = []
-    for i in range(kWindowSize,trainSize):
+    print("End date is: " + str(trainSize))
+    for i in range(kWindowSize,endDate-startDate):
+        data = marketData[:,i-kWindowSize:i]
+        point = kDataPoint(data, kWindowSize, i)
+        dataPoints.append(point)
+    return dataPoints
+
+def reAdjustTraining(endDate, trainSize, kWindowSize, marketData):
+    """
+    A function that creates data points using a given window size and a market of price relatives.
+    """
+    dataPoints = []
+    for i in range(trainSize, endDate):
         data = marketData[:,i-kWindowSize:i]
         point = kDataPoint(data, kWindowSize, i)
         dataPoints.append(point)
@@ -583,9 +627,13 @@ def reAdjustDataAssign(centroids, dataPoints, numCluster, tol):
     Check to see if we can stop the clustering algorithm since we are within the acceptable tolerance.
     """
     currError = 1
+    numAdjusts = 0
     while currError > tol:
         centroids = updateCentroids(centroids, dataPoints, numCluster)
         dataPoints, currError = updateClusters(centroids, dataPoints)
+        numAdjusts += 1
+        if numAdjusts > 10:
+            return
 
 def addNewDataPoint(centroids, dataPoints, marketWindow, day, kWindowSize):
     point = kDataPoint(marketWindow, kWindowSize, day)
@@ -655,11 +703,18 @@ windowSize = 5
 P = 10
 K = 5
 tol = 1e-2
-numCluster = 5
-trainSize = 50
-freqRandom = 5
+numCluster = 6
+trainSize = 30  
+freqRandom = 3
+startDate = 1500
+ENDdate = 1900
+dayRange = str(startDate) + "-" + str(ENDdate)
+showcase = "flat"
+market = "jse"
+train = "TrainSize" + str(trainSize) + ".txt"
 
-wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster)
+
+wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("./hopeOfJaredTwo.txt",wealth)
+np.savetxt("./"+dayRange+showcase+market+train,wealth)
