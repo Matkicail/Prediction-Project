@@ -705,7 +705,7 @@ windowSize = 5
 P = 10
 K = 5
 tol = 1e-2
-trainSize = 10
+trainSize = 20
 numCluster = trainSize // 3
 freqRandom = trainSize // 3
 oscilate = 0
@@ -713,7 +713,8 @@ startDate = 0
 # to allow us to have access to our training in validation
 if startDate > trainSize:
     startDate = startDate - trainSize
-while startDate < dataset.shape[0] - 1:
+
+while startDate < dataset.shape[1] - 1:
     
     if oscilate % 2 == 0:
         # here 102 represents the validation date associated with a given day
