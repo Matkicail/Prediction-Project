@@ -423,9 +423,7 @@ def reAdjustKMeans(dataPointsWindows, data, centroidsWindows, trainSize, windowS
     # input()
     if trainSize > 0:
         for i in range(1, windowSize+1):
-            # tempData = createPoints(trainSize, kWindowSize, marketData, startDate, trainSize)
-            # createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
-            tempData = createPoints(trainSize-1, i, data, endDate - trainSize -1, endDate)
+            tempData = createPoints(trainSize, i, data, startDate, startDate + trainSize)
             tempCentroids = generateCentroids(numCluster)
             randomAssignCentroids(tempData, numCluster)
             reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
@@ -488,26 +486,11 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
                 reAdjustDataAssign(centroidsWindows[w-1], dataPointsWindows[w-1], numCluster, tol)
         if i % 3 * freqRandom == 0:
             numCluster += 1
-        # if i % (2*trainSize) == 0:
-        #     numCluster = 4
-        #     dataPointsWindows = []
-        #     centroidsWindows = []
-        #     print("\t READJUSTING - THE END DATE IS: " + str(i))
-        #     print("\t READJUSTING - THE START DATE IS: " + str(i - trainSize - 1))
-        #     print("\t READJUSTING - TRAINSIZE IS: " + str(trainSize))
-        #     # input()
-        #     if trainSize > 0:
-        #         for w in range(1, windowSize+1):
-        #             # tempData = createPoints(trainSize, kWindowSize, marketData, startDate, trainSize)
-        #             # createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
-        #             clusterData = data[:,i - trainSize:i-1]
-        #             tempData = createPoints(trainSize-1, w, clusterData, i - trainSize, i-1)
-        #             tempCentroids = generateCentroids(numCluster)
-        #             randomAssignCentroids(tempData, numCluster)
-        #             reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
-        #             dataPointsWindows.append(tempData)
-        #             centroidsWindows.append(tempCentroids)
-
+        if i % (2*trainSize) == 0:
+            numCluster = 4
+            marketWindow = data[:,i-trainSize-1:i-1]
+            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindows, trainSize, windowSize, P, numCluster, i, tol)
+            print("========READJUSTED DATASET========")
         portfolio = np.zeros((numStocks,))
         day = dayReturn(i, dates, data)
         #update the experts' individual wealths
@@ -736,7 +719,9 @@ while startDate < dataset.shape[0] - 1:
         # here 102 represents the validation date associated with a given day
         # so load in, set values to zero and then check how we do on validation
         ENDdate = startDate + 508 - 102
-
+        trainSize = 10
+        numCluster = trainSize // 3
+        freqRandom = trainSize // 3
         showcase = "trainVal"
         market = "JSE"
         train = "TrainSize" + str(trainSize) + ".txt"
@@ -744,10 +729,21 @@ while startDate < dataset.shape[0] - 1:
         print("Minimum value in wealth array: " + str(wealth.min()))
         print("Maximum value in wealth array: " + str(wealth.max()))
         np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal" + "{0}-{1}-TrainSize-{1}".format(startDate, ENDdate, trainSize),wealth)
-        startDate += 508
+        startDate += 508 - 102
         if startDate > trainSize:
             startDate -= trainSize
         oscilate +=1
+        ENDdate += 102
+        trainSize = 10
+        numCluster = trainSize // 3
+        freqRandom = trainSize // 3
+        showcase = "trainVal"
+        market = "JSE"
+        train = "TrainSize" + str(trainSize) + ".txt"
+        wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
+        print("Minimum value in wealth array: " + str(wealth.min()))
+        print("Maximum value in wealth array: " + str(wealth.max()))
+        np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal" + "{0}-{1}-TrainSize-{1}-VALIDATION".format(startDate, ENDdate, trainSize),wealth)
     else:
         ENDdate = startDate + 254
         showcase = "testing"
