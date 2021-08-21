@@ -699,61 +699,76 @@ tempTickersFind = np.unique(tempStartFind.Ticker.to_numpy())
 numStocks = len(tempTickersFind)
 market = marketWindow(1,1,dates,dataset)
 uniformPort = np.ones((numStocks)) / numStocks
-testDays = np.arange(start = 0 , stop = dataset.shape[1]-1, step = 254)
-trainValDays = np.arange(start = 0 , stop = dataset.shape[1]-1, step = 254*2)
-windowSize = 5
-P = 10
-K = 5
-tol = 1e-2
-trainSize = 20
-numCluster = trainSize // 3
-freqRandom = trainSize // 3
-oscilate = 0
-startDate = 0
-# to allow us to have access to our training in validation
-if startDate > trainSize:
-    startDate = startDate - trainSize
+testDateEnd = 3
+market = "SP5"
+# make sure to make it possible to interact with validation data correctly
+problemPeriod = []
+trainSizes = np.arange(start = 10, stop = 220, step=10)
+for i in trainSizes:
+    windowSize = 5
+    P = 10
+    K = 5
+    tol = 1e-2
+    trainSizeVal = i
+    trainSize = trainSizeVal
+    numCluster = trainSize // 3
+    freqRandom = trainSize // 3
+    oscilate = 0
+    startDate = 0
+    startDateCount = 2
+    averageTradeDay = 254
+    count = 0
+    try:
+        while startDate < dataset.shape[1] - 1:
+                
+                if oscilate % 2 == 0:
+                    # here 102 represents the validation date associated with a given day
+                    # so load in, set values to zero and then check how we do on validation
+                    trainSize = trainSizeVal
+                    ENDdate = startDateCount  * averageTradeDay + count * averageTradeDay - trainSize - 102
+                    numCluster = trainSize // 3
+                    freqRandom = trainSize // 3
+                    showcase = "trainVal"
+                    train = "TrainSize" + str(trainSize) + ".txt"
+                    wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
+                    print("Minimum value in wealth array: " + str(wealth.min()))
+                    print("Maximum value in wealth array: " + str(wealth.max()))
+                    np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-TRAINING-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
+                    startDate = ENDdate
+                    if startDate > trainSize:
+                        startDate -= trainSize
+                    oscilate +=1
+                    ENDdate = startDateCount  * averageTradeDay + count * averageTradeDay - trainSize
 
-while startDate < dataset.shape[1] - 1:
-    
-    if oscilate % 2 == 0:
-        # here 102 represents the validation date associated with a given day
-        # so load in, set values to zero and then check how we do on validation
-        ENDdate = startDate + 508 - 102
-        trainSize = 10
-        numCluster = trainSize // 3
-        freqRandom = trainSize // 3
-        showcase = "trainVal"
-        market = "JSE"
-        train = "TrainSize" + str(trainSize) + ".txt"
-        wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-        print("Minimum value in wealth array: " + str(wealth.min()))
-        print("Maximum value in wealth array: " + str(wealth.max()))
-        np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal" + "{0}-{1}-TrainSize-{1}".format(startDate, ENDdate, trainSize),wealth)
-        startDate += 508 - 102
-        if startDate > trainSize:
-            startDate -= trainSize
-        oscilate +=1
-        ENDdate += 102
-        trainSize = 10
-        numCluster = trainSize // 3
-        freqRandom = trainSize // 3
-        showcase = "trainVal"
-        market = "JSE"
-        train = "TrainSize" + str(trainSize) + ".txt"
-        wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-        print("Minimum value in wealth array: " + str(wealth.min()))
-        print("Maximum value in wealth array: " + str(wealth.max()))
-        np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal" + "{0}-{1}-TrainSize-{1}-VALIDATION".format(startDate, ENDdate, trainSize),wealth)
-    else:
-        ENDdate = startDate + 254
-        showcase = "testing"
-        market = "JSE"
-        train = "TrainSize" + str(trainSize) + ".txt"
-        # wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-        print("Minimum value in wealth array: " + str(wealth.min()))
-        print("Maximum value in wealth array: " + str(wealth.max()))
-        wealth = np.array([-1,-1,-1])
-        np.savetxt("./Data Sets/WEIRDK/" + market + "/Testing" + "{0}-{1}-TrainSize-{1}".format(startDate, ENDdate, trainSize),wealth)
-        startDate += 254
-        oscilate +=1
+                    trainSize = trainSizeVal
+                    numCluster = trainSize // 3
+                    freqRandom = trainSize // 3
+                    showcase = "trainVal"
+                    train = "TrainSize" + str(trainSize) + ".txt"
+                    wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
+                    print("Minimum value in wealth array: " + str(wealth.min()))
+                    print("Maximum value in wealth array: " + str(wealth.max()))
+                    np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-VALIDATION-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
+                    if count == 0:
+                        count = 1
+                    startDateCount *= 2
+                else:
+                    trainSize = trainSizeVal
+                    startDate = ENDdate + trainSize
+                    ENDdate = startDate + 254
+                    showcase = "testing"
+                    train = "TrainSize" + str(trainSize) + ".txt"
+                    # wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
+                    print("Minimum value in wealth array: " + str(wealth.min()))
+                    print("Maximum value in wealth array: " + str(wealth.max()))
+                    wealth = np.array([-1,-1,-1])
+                    np.savetxt("./Data Sets/WEIRDK/" + market + "/Testing/" + "{0}-{1}-TrainSize-{2}".format(startDate, ENDdate, trainSize),wealth)
+                    startDate = averageTradeDay * testDateEnd
+                    testDateEnd *= 2
+                    oscilate +=1
+    except:
+        print("REACHED END OF DATA SET")
+        problemPeriod.append([startDate, ENDdate])
+
+for i in problemPeriod:
+    print("error at day - startday,endDay: ".format(i[0], i[1]))
