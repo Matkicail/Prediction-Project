@@ -1,0 +1,13 @@
+BIS  Interesting Days:
+
+BOV  Interesting Days:
+
+JSE Interesting Days:
+Flattish: Days 1500-1900 ()
+Flat : Days 2300-2700
+Crash: Days 2650-2900 (crashShowcaseJse)
+Bull: Days 2900-3200	(bullShowcaseJse)
+
+
+
+NAS  Interesting Days:
