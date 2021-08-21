@@ -8,20 +8,30 @@ import os
 
 class StockDownloader:
     def __init__(self, url = "https://sashares.co.za/jse-top-40/", topStocksIDs=None, tryCache=True):
+
+        #Set up paramters
         self.url = url
         self.topStocksIDs = topStocksIDs
         self.topStocksData = None
+        self.cleanedData = None
+        self.priceRelativeData = None
+        self.tryCache = tryCache
 
+        #Names for directory and files
         self.cachedDirectory = "StockData"
         self.cachedFile = "stocks"
         self.cleanedCachedFile = "cleaned"
-        self.fullPath = "{0}/{1}.zip".format(self.cachedDirectory, self.cachedFile)
+        self.relativeFile = "relative"
 
+        #Full paths from names
+        self.fullPath = "{0}/{1}.zip".format(self.cachedDirectory, self.cachedFile)
+        self.cleanFullPath = "{0}/{1}_{2}.zip".format(self.cachedDirectory, self.cleanedCachedFile, self.cachedFile)
+        self.relativeFullPath = "{0}/{1}_{2}.zip".format(self.cachedDirectory, self.cleanedCachedFile, self.cachedFile)
+
+
+        #Compression config
         self.compressionConfig = {'method' : 'zip', 'archive_name' : self.cachedFile + ".csv"}
 
-        self.tryCache = tryCache
-
-        self.cleanedNumpyData = None
 
         #Tries to see if we have downloaded data
         if tryCache:
@@ -32,7 +42,9 @@ class StockDownloader:
         
 
     def LoadCachedData(self):
-
+        """
+        Function to load Cached data. Will run by default unless specified not to.
+        """
         if(self.tryCache == False):
             print("Not allowed to load cache")
             return False
@@ -42,14 +54,25 @@ class StockDownloader:
             os.makedirs(self.cachedDirectory)
             return False
         else:
+            #TODO could be improved
+            foundData = False
             if(os.path.isfile(self.fullPath)):
-                self.topStocksData = pd.read_csv(self.fullPath, dtype=object)
-                return True
-        return False
+                self.topStocksData = pd.read_csv(self.fullPath, dtype=object).to_numpy()
+                foundData = True
+            
+            if(os.path.isfile(self.cleanFullPath)):
+                self.cleanedData = pd.read_csv(self.cleanFullPath, dtype=object).to_numpy()
+
+            if(os.path.isfile(self.relativeFullPath)):
+                self.priceRelativeData = pd.read_csv(self.relativeFullPath, dtype=object).to_numpy()
+
+            return foundData
 
 
     def DownloadTopStocksIDs(self):
-
+        """
+        Scrapes to top 40 JSE stocks. Note, only works with one website https://sashares.co.za/jse-top-40/ so far
+        """
         #Get page and soup it
         page = requests.get(self.url)
         soup = BeautifulSoup(page.content, "html.parser")
@@ -63,9 +86,17 @@ class StockDownloader:
             self.topStocksIDs.append(row.extract().next_element.next_element.findNext(text=True) + ".JO")
 
         return self
+    
+    def DownloadData(self):
+        """
+        A helper function that will automate the downloading of data, will clean it, and get price relatives
+        """
+        self.DownloadTopStocks()
+        self.CleanData()
+        self.CalculatePriceRelative()
 
     #Download all top stocks from beginning
-    def DownloadTopStocks(self, cacheFile = True):
+    def DownloadTopStocks(self):
         if self.topStocksIDs is None:
             self.DownloadTopStocksIDs()
         
@@ -75,23 +106,23 @@ class StockDownloader:
         start = dt.datetime(2000, 1, 1)
         end = dt.datetime.today()
 
-        self.topStocksData = pdr.get_data_yahoo(self.topStocksIDs, start, end)
-
-        #Cache it if possible
-        if cacheFile:
-            self.topStocksData.to_csv(self.fullPath, compression=self.compressionConfig)
+        #Download stock
+        topStocksData = pdr.get_data_yahoo(self.topStocksIDs, start, end)
+        self.topStocksData = topStocksData.to_numpy()
+        
+        #Save
+        topStocksData.to_csv(self.fullPath, compression=self.compressionConfig)
 
         return self
 
-    def UpdateTopStocks(self):
-        pass
 
     def CleanData(self, thresholdRowAmount = None):
 
+        #Data loaded from csv is different from downloaded data
         assert self.LoadCachedData(), "Can only clean data on cache loaded data"
 
-        #Data loaded from csv is different from downloaded data
-        data = self.topStocksData.to_numpy()
+        data = self.topStocksData
+
         #Read data
         data = np.delete(data, 1, 0)
         symbols = data[0,0:41]
@@ -110,8 +141,6 @@ class StockDownloader:
         data = data[row:, :].astype(np.object)
         dates = dates[row:]
 
-        self.cleanedNumpyData = data.copy()
-
         #Insert Dates
         data = np.insert(data, 0, dates, axis=1)
 
@@ -119,18 +148,43 @@ class StockDownloader:
         symbols[0]="Date"
         data = np.insert(data, 0, symbols, axis=0)
 
+        self.cleanedData = data.copy()
+
         #Rebuild pandas to save
         df = pd.DataFrame(data)
-        df.to_csv("{0}/{1}_{2}.zip".format(self.cachedDirectory, self.cleanedCachedFile, self.cachedFile), compression=self.compressionConfig)
+        df.to_csv(self.cleanFullPath, compression=self.compressionConfig)
 
-        self.CalculatePriceRelative()
+        return self
 
     def CalculatePriceRelative(self):
-        data = self.cleanedNumpyData
 
+        assert self.cleanedData is not None, "Requires cleaned data to run"
+
+        #Extract cleaned data
+        data = self.cleanedData.copy()[1:,1:].astype(float)
+
+        #Calculate price relatives and insert ones
         priceRelative = data[1:,:] / data[:-1,:]
         priceRelative= np.insert(priceRelative, 0, np.ones((1,priceRelative.shape[1])), axis=0)
-        self.priceRelative = priceRelative
+
+        #Add headings and dates
+        priceRelative = priceRelative.astype(object)
+        priceRelative = np.insert(priceRelative, 0, self.cleanedData[1:,0], axis=1)
+        priceRelative = np.insert(priceRelative, 0, self.cleanedData[0,:], axis=0)
+
+        #Copy and save
+        self.priceRelativeData = priceRelative.copy()
+
+        #Save
+        df = pd.DataFrame(priceRelative)
+        df.to_csv("{0}/{1}_{2}.zip".format(self.cachedDirectory, self.relativeFile, self.cachedFile), compression=self.compressionConfig)
+
+        return self
+
+    def UpdateTopStocks(self):
+        print("TODO, Implement")
+        pass
+
 
 a = StockDownloader(tryCache=True)
-a.CleanData()
+a.DownloadData()
