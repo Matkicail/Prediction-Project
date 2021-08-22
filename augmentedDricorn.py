@@ -466,7 +466,7 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
     if numCluster == 0:
         numCluster = 1
 
-    returns, experts = beginUniformStart(dates, data, trainSize, experts, windowSize, P)
+    # returns, experts = beginUniformStart(dates, data, trainSize, experts, windowSize, P)
 
     for i in range(trainSize+startDate,len(dates)):
         print("I is: " + str(i))
@@ -703,7 +703,7 @@ testDateEnd = 3
 market = input("Input the market")
 # make sure to make it possible to interact with validation data correctly
 problemPeriod = []
-trainSizes = np.arange(start = 10, stop = 220, step=10)
+trainSizes = np.arange(start = 10, stop = 200, step=10)
 for i in trainSizes:
     windowSize = 5
     P = 10
@@ -714,9 +714,10 @@ for i in trainSizes:
     numCluster = trainSize // 3
     freqRandom = trainSize // 3
     oscilate = 0
-    startDate = 0
     startDateCount = 2
     averageTradeDay = 254
+    maxTrainSize = 200
+    startDate = maxTrainSize - i
     count = 0
     try:
         while startDate < dataset.shape[1] - 1:
@@ -725,7 +726,7 @@ for i in trainSizes:
                     # here 102 represents the validation date associated with a given day
                     # so load in, set values to zero and then check how we do on validation
                     trainSize = trainSizeVal
-                    ENDdate = startDate + (2  * averageTradeDay) - trainSize - 160
+                    ENDdate = startDate + (2  * averageTradeDay)
                     numCluster = trainSize // 3
                     freqRandom = trainSize // 3
                     showcase = "trainVal"
@@ -735,28 +736,12 @@ for i in trainSizes:
                     wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
                     print("Minimum value in wealth array: " + str(wealth.min()))
                     print("Maximum value in wealth array: " + str(wealth.max()))
-                    np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-TRAINING-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
-                    startDate = ENDdate
-                    if startDate > trainSize:
-                        startDate -= trainSize
-                    oscilate +=1
-                    ENDdate = startDate  +  160 - trainSize
-                    print("VALIDATION: StartDate: {0}, EndDate: {1}".format(startDate,ENDdate))
-                    input()
-                    trainSize = trainSizeVal
-                    numCluster = trainSize // 3
-                    freqRandom = trainSize // 3
-                    showcase = "trainVal"
-                    train = "TrainSize" + str(trainSize) + ".txt"
-                    wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-                    print("Minimum value in wealth array: " + str(wealth.min()))
-                    print("Maximum value in wealth array: " + str(wealth.max()))
-                    np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-VALIDATION-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
-                    
+                    np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-TRAINVAL-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
+                    startDate = ENDdate + maxTrainSize - i
                 else:
                     trainSize = trainSizeVal
                     startDate = ENDdate
-                    ENDdate = startDate + 254 + trainSize
+                    ENDdate = startDate + 254 
                     print("TESTING: StartDate: {0}, EndDate: {1}".format(startDate,ENDdate))
                     input()
                     showcase = "testing"
@@ -766,7 +751,7 @@ for i in trainSizes:
                     print("Maximum value in wealth array: " + str(wealth.max()))
                     wealth = np.array([-1,-1,-1])
                     np.savetxt("./Data Sets/WEIRDK/" + market + "/Testing/" + "{0}-{1}-TrainSize-{2}".format(startDate, ENDdate, trainSize),wealth)
-                    startDate = ENDdate
+                    startDate = ENDdate + maxTrainSize - i
                     oscilate +=1
                     
     except:
