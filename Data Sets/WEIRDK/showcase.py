@@ -3,17 +3,18 @@ from matplotlib import pyplot as plt
 
 
 data = []
-startDate = 2524
-endDate = 3032
-exchange = "JSE"
-for i in range(10, 100, 10):
+startDate = 200
+endDate = 708
+exchange = "BIS"
+sizes = [10, 110, 190]
+for i in sizes:
     temp = np.loadtxt("./" + exchange + "/TrainVal/-TRAINVAL-TrainSize-{0}-Start-{1}-End-{2}".format(i, startDate-i, endDate))
     data.append(temp)
 
-count = 10
+count = 0
 for i in data:
-    plt.plot(i, label = "TrainSize-{0}".format(count))
-    count += 10
+    plt.plot(i, label = "TrainSize-{0}".format(sizes[count]))
+    count += 1
 plt.legend()
 plt.title("{0} StartDate {1} - EndDate {2}".format(exchange, startDate, endDate))
 plt.xlabel("# Trading Days")

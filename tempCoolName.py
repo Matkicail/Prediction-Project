@@ -99,7 +99,7 @@ def initialGuess(days, sizeSet):
     
     return port
 
-def expertLearn(window, corrThresh, day, data, dataPoints):
+def expertLearn(window, corrThresh, day, data, dataPoints, Agent):
     """
     Preform algorithm 1 from CORN paper.
     This algorithm is the expert learning procedure.
@@ -146,7 +146,8 @@ def expertLearn(window, corrThresh, day, data, dataPoints):
             for i in dataPoints:
                 corrSimSet = np.append(corrSimSet,i.day)
         else:
-            print("I found this many in my corrSimSet: " + str(len(corrSimSet)))
+            # print(Agent)
+            print("\t I found this many in my corrSimSet: " + str(len(corrSimSet)))
         # Search for the optimal portfolio
         # so using the i in the set, get the argmax
         # from what I understand, we need the price relative vector at time i, find the stock that gave the best return and all in on that stock
@@ -432,13 +433,15 @@ def reAdjustKMeans(dataPointsWindows, data, centroidsWindows, trainSize, windowS
 
     return dataPointsWindows, centroidsWindows
 
-def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
+def runCorn(dates, data, windowSize, P, trainSizeSmall, trainSizeMedium, trainSizeLarge, numClusterSmall, numClusterMedium, numClusterLarge, startDateSmall, startDateMedium, startDateLarge, totalStartDate):
     """
     Run the CORN-K algorithm on the data set
     TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
     """
     # create experts which a 1D array
-    experts = initExperts(windowSize,numStocks,P)
+    expertsSmall = initExperts(windowSize,numStocks,P)
+    expertsMedium = initExperts(windowSize,numStocks,P)
+    expertsLarge = initExperts(windowSize,numStocks,P)
     # going downwards window size increases, going rightwards the corrThresh increases
     totReturn = 1
     # starting from first day to the final day
@@ -446,79 +449,179 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
     returns = np.array(())
     returns = np.append(returns,1)
 
-    dataPointsWindows = []
-    centroidsWindows = []
-    if trainSize > 0:
-        marketData = data[:,startDate:startDate + trainSize-1]
+    dataPointsWindowsSmall = []
+    dataPointsWindowsMedium = []
+    dataPointsWindowsLarge = []
+    centroidsWindowsSmall = []
+    centroidsWindowsMedium = []
+    centroidsWindowsLarge = []
+    
+    freqRandomSmall = trainSizeSmall // 3
+    freqRandomMedium = trainSizeMedium // 3
+    freqRandomLarge = trainSizeLarge // 3
+
+    # set the small data set to go
+    if trainSizeSmall > 0:
+        marketData = data[:,startDateSmall:startDateSmall + trainSizeSmall-1]
         for i in range(1, windowSize+1):
             # tempData = def createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
-            tempData = createPoints(trainSize, i, marketData, startDate, startDate + trainSize)
+            tempData = createPoints(trainSizeSmall, i, marketData, startDateSmall, startDateSmall + trainSizeSmall)
             print("==============FOR INITIALISATION==============")
-            print("\t Start Date is: " + str(startDate))
-            print("\t End Date is: " + str(startDate + trainSize - 1))
-            print("\t TrainSize is: " + str(trainSize - 1))
+            print("\t Start Date is: " + str(startDateSmall))
+            print("\t End Date is: " + str(startDateSmall + trainSizeSmall - 1))
+            print("\t TrainSize is: " + str(trainSizeSmall - 1))
             # input()
-            tempCentroids = generateCentroids(numCluster)
-            randomAssignCentroids(tempData, numCluster)
-            reAdjustDataAssign(tempCentroids, tempData, numCluster, tol)
-            dataPointsWindows.append(tempData)
-            centroidsWindows.append(tempCentroids)
-    if numCluster == 0:
-        numCluster = 1
+            tempCentroids = generateCentroids(numClusterSmall)
+            randomAssignCentroids(tempData, numClusterSmall)
+            reAdjustDataAssign(tempCentroids, tempData, numClusterSmall, tol)
+            dataPointsWindowsSmall.append(tempData)
+            centroidsWindowsSmall.append(tempCentroids)
+    if numClusterSmall == 0:
+        numClusterSmall = 1
 
+    # set the medium data set to go
+    if trainSizeMedium > 0:
+        marketData = data[:,startDateMedium:startDateMedium + trainSizeMedium-1]
+        for i in range(1, windowSize+1):
+            # tempData = def createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
+            tempData = createPoints(trainSizeMedium, i, marketData, startDateMedium, startDateMedium + trainSizeMedium)
+            print("==============FOR INITIALISATION==============")
+            print("\t Start Date is: " + str(startDateMedium))
+            print("\t End Date is: " + str(startDateMedium + trainSizeMedium - 1))
+            print("\t TrainSize is: " + str(trainSizeMedium - 1))
+            # input()
+            tempCentroids = generateCentroids(numClusterMedium)
+            randomAssignCentroids(tempData, numClusterMedium)
+            reAdjustDataAssign(tempCentroids, tempData, numClusterMedium, tol)
+            dataPointsWindowsMedium.append(tempData)
+            centroidsWindowsMedium.append(tempCentroids)
+    if numClusterMedium == 0:
+        numClusterMedium = 1
+    # set the large data set to go
+    if trainSizeLarge > 0:
+        marketData = data[:,startDateLarge:startDateLarge + trainSizeLarge-1]
+        for i in range(1, windowSize+1):
+            # tempData = def createPoints(trainSize, kWindowSize, marketData, startDate, endDate)
+            tempData = createPoints(trainSizeLarge, i, marketData, startDateLarge, startDateLarge + trainSizeLarge)
+            print("==============FOR INITIALISATION==============")
+            print("\t Start Date is: " + str(startDateLarge))
+            print("\t End Date is: " + str(startDateLarge + trainSizeLarge - 1))
+            print("\t TrainSize is: " + str(trainSizeLarge - 1))
+            # input()
+            tempCentroids = generateCentroids(numClusterLarge)
+            randomAssignCentroids(tempData, numClusterLarge)
+            reAdjustDataAssign(tempCentroids, tempData, numClusterLarge, tol)
+            dataPointsWindowsLarge.append(tempData)
+            centroidsWindowsLarge.append(tempCentroids)
+    if numClusterLarge == 0:
+        numClusterLarge = 1
     # returns, experts = beginUniformStart(dates, data, trainSize, experts, windowSize, P)
 
-    for i in range(trainSize+startDate,len(dates)):
+    for i in range(totalStartDate,len(dates)):
         print("I is: " + str(i))
         # for each window size as based on the experts which is of length windowSize - 1
         for w in range((windowSize - 1)*P):
-            tempPoints = dataPointsWindows[w//P]
-            tempClusters = centroidsWindows[w//P]
-            experts[w].currPort = expertLearn(experts[w].windowSize, experts[w].corrThresh, i, data, tempPoints)
+            tempPointsSmall = dataPointsWindowsSmall[w//P]
+            tempPointsMedium = dataPointsWindowsMedium[w//P]
+            tempPointsLarge = dataPointsWindowsLarge[w//P]
+            expertsSmall[w].currPort = expertLearn(expertsSmall[w].windowSize, expertsSmall[w].corrThresh, i, data, tempPointsSmall, "Small")
+            expertsMedium[w].currPort = expertLearn(expertsMedium[w].windowSize, expertsMedium[w].corrThresh, i, data, tempPointsMedium, "Medium")
+            expertsLarge[w].currPort = expertLearn(expertsLarge[w].windowSize, expertsLarge[w].corrThresh, i, data, tempPointsLarge, "Large")
         # combine our experts' portfolios
         for w in range(1,windowSize+1):
             marketData = data[:,i-w-1:i-1]
-            addNewDataPoint(centroidsWindows[w-1], dataPointsWindows[w-1], marketData, i, w)
-            if i % freqRandom == 0:
-                centroids = generateCentroids(numCluster)
-                centroidsWindows[w-1] = centroids
-                randomAssignCentroids(dataPointsWindows[w-1], numCluster)
-                reAdjustDataAssign(centroidsWindows[w-1], dataPointsWindows[w-1], numCluster, tol)
-        if i % 3 * freqRandom == 0:
-            numCluster += 1
-        if i % (2*trainSize) == 0:
-            numCluster = 4
-            marketWindow = data[:,i-trainSize-1:i-1]
-            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindows, trainSize, windowSize, P, numCluster, i, tol)
-            print("========READJUSTED DATASET========")
+            # add the new data to all of them
+            addNewDataPoint(centroidsWindowsSmall[w-1], dataPointsWindowsSmall[w-1], marketData, i, w)
+            addNewDataPoint(centroidsWindowsMedium[w-1], dataPointsWindowsMedium[w-1], marketData, i, w)
+            addNewDataPoint(centroidsWindowsLarge[w-1], dataPointsWindowsLarge[w-1], marketData, i, w)
+            # deal with small window
+            if i % freqRandomSmall == 0:
+                centroids = generateCentroids(numClusterSmall)
+                centroidsWindowsSmall[w-1] = centroids
+                randomAssignCentroids(dataPointsWindowsSmall[w-1], numClusterSmall)
+                reAdjustDataAssign(centroidsWindowsSmall[w-1], dataPointsWindowsSmall[w-1], numClusterSmall, tol)
+            # deal with medium window
+            if i % freqRandomMedium == 0:
+                centroids = generateCentroids(numClusterMedium)
+                centroidsWindowsMedium[w-1] = centroids
+                randomAssignCentroids(dataPointsWindowsMedium[w-1], numClusterMedium)
+                reAdjustDataAssign(centroidsWindowsMedium[w-1], dataPointsWindowsMedium[w-1], numClusterMedium, tol)
+            # deal with large window
+            if i % freqRandomLarge == 0:
+                centroids = generateCentroids(numClusterLarge)
+                centroidsWindowsLarge[w-1] = centroids
+                randomAssignCentroids(dataPointsWindowsLarge[w-1], numClusterLarge)
+                reAdjustDataAssign(centroidsWindowsLarge[w-1], dataPointsWindowsLarge[w-1], numClusterLarge, tol)
+
+        #  deal with small window
+        if i % 3 * freqRandomSmall == 0:
+            numClusterSmall += 1
+        # deal with medium window
+        if i % 3 * freqRandomMedium == 0:
+            numClusterMedium += 1
+        # deal with large window
+        if i % 3 * freqRandomLarge == 0:
+            numClusterLarge += 1
+
+        # small size
+        if i % (2*trainSizeSmall) == 0:
+            numClusterSmall = 4
+            marketWindow = data[:,i-trainSizeSmall-1:i-1]
+            dataPointsWindowsSmall, centroidsWindowsSmall = reAdjustKMeans(dataPointsWindowsSmall, marketWindow, centroidsWindowsSmall, trainSizeSmall, windowSize, P, numClusterSmall, i, tol)
+            print("========READJUSTED SMALL-SIZE DATASET========")
+        # medium size
+        if i % (2*trainSizeMedium) == 0:
+            numClusterMedium = 4
+            marketWindow = data[:,i-trainSizeMedium-1:i-1]
+            dataPointsWindowsMedium, centroidsWindows = reAdjustKMeans(dataPointsWindowsMedium, marketWindow, centroidsWindowsMedium, trainSizeMedium, windowSize, P, numClusterMedium, i, tol)
+            print("========READJUSTED MEDIUM-SIZE DATASET========")
+        # large size
+        if i % (2*trainSizeLarge) == 0:
+            numClusterLarge = 4
+            marketWindow = data[:,i-trainSizeLarge-1:i-1]
+            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindowsMedium, trainSizeLarge, windowSize, P, numClusterLarge, i, tol)
+            print("========READJUSTED LARGE-SIZE DATASET========")
         portfolio = np.zeros((numStocks,))
         day = dayReturn(i, dates, data)
         #update the experts' individual wealths
-        expertDayEarly = experts
+
+        # update each set of the experts from small to the large
+        
+        expertDayEarlySmall = expertsSmall
+        expertDayEarlyMedium = expertsMedium
+        expertDayEarlyLarge = expertsLarge
+        # small
         for m in range((windowSize-1)*P):
-            experts[m].increaseWealth(day)
-            
+            expertsSmall[m].increaseWealth(day)
+            expertsMedium[m].increaseWealth(day)
+            expertsLarge[m].increaseWealth(day)
+
         # TOP-K and expert weights update
         # first need to find these top-K experts
         # so select top K experts based on historical performance - so search through experts and find their wealths, as a 2D matrix, find those indices and work backwards ?
         # this will not be a 2D array and instead an array that is flattened
         # Given that experts should also be a flattened array this should be acceptable
-        topK = findTopK(expertDayEarly)
+        # do this for each set of experts
+
+        #small, medium, large
+        topKSmall = findTopK(expertDayEarlySmall)
+        topKMedium = findTopK(expertDayEarlyMedium)
+        topKLarge = findTopK(expertDayEarlyLarge)
+
+        # choose the best amongst the best
+        topK = findBestAmongstTopK(topKSmall, expertDayEarlySmall, topKMedium, expertDayEarlyMedium, topKLarge, expertDayEarlyLarge)
         # since topK contains the indices of the top-k experts we will just loop through the experts
         for x in topK:
             # set their weights (TOP K)
-            x = int(x)
-            if x in topK:
-                experts[x].weight = 1 / K
+            x.weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
 
         todayPortNumerator = np.zeros(numStocks)
         todayPortDenom = np.zeros(numStocks)
         for x in topK:
-            x = int(x)
-            if experts[x].weight != 0:
-                todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
-                todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+            if x.weight != 0:
+                todayPortNumerator += x.weight * (x.wealthAchieved * x.currPort)
+                todayPortDenom += x.weight * x.wealthAchieved
             else:
                 pass
         todayPort = todayPortNumerator / todayPortDenom
@@ -535,6 +638,37 @@ def runCorn(dates, data, windowSize, P, trainSize, numCluster, startDate):
         if i == ENDdate:
             return returns
     return returns
+
+# find the best amongst the best
+def findBestAmongstTopK(topKSmall, smallExperts, topKMedium, mediumExperts, topKLarge, largeExperts):
+    
+    
+    
+    bestExpertArray = np.empty((3,5))
+    count = 0
+    for k in range(len(topKSmall)):
+        bestExpertArray[0,count] = smallExperts[int(topKSmall[k])].wealthAchieved
+        bestExpertArray[1,count] = mediumExperts[int(topKMedium[k])].wealthAchieved
+        bestExpertArray[2,count] = largeExperts[int(topKLarge[k])].wealthAchieved
+        count += 1
+    
+    bestExpertArray = bestExpertArray.flatten()
+    bestIndices = np.array(())
+    for k in range(K):
+        currBest = np.argmax(bestExpertArray)
+        bestIndices = np.append(bestIndices, currBest)
+        bestExpertArray[currBest] = -999
+
+    bestAgents = []
+    for i in bestIndices:
+        i = int(i)
+        if i < 5:
+            bestAgents.append(smallExperts[i])
+        elif i < 10:
+            bestAgents.append(mediumExperts[i-5])
+        elif i <  15:
+            bestAgents.append(largeExperts[i-10])
+    return bestAgents       
 
 # new stuff from our kMeansMarket to test this out
 def createPoints(trainSize, kWindowSize, marketData, startDate, endDate):
@@ -699,72 +833,37 @@ tempTickersFind = np.unique(tempStartFind.Ticker.to_numpy())
 numStocks = len(tempTickersFind)
 market = marketWindow(1,1,dates,dataset)
 uniformPort = np.ones((numStocks)) / numStocks
-testDateEnd = 3
+testDateEnd = 708
 market = input("Input the market \n")
 # make sure to make it possible to interact with validation data correctly
-problemPeriod = []
-trainSizes = np.arange(start = 10, stop = 200, step=10)
-print(dataset.shape)
-for i in trainSizes:
-    windowSize = 5
-    P = 10
-    K = 5
-    tol = 1e-2
-    trainSizeVal = i
-    trainSize = trainSizeVal
-    numCluster = trainSize // 3
-    freqRandom = trainSize // 3
-    oscilate = 0
-    startDateCount = 2
-    averageTradeDay = 254
-    maxTrainSize = 200
-    startDate = maxTrainSize - i
-    ENDdate = startDate + (2 * averageTradeDay)
-    count = 0
-    while startDate < dataset.shape[1] - 1:
-                
-            if oscilate % 2 == 0:
-                    # here 102 represents the validation date associated with a given day
-                    # so load in, set values to zero and then check how we do on validation
-                if ENDdate < dataset.shape[1] - 1 and startDate < dataset.shape[1]:
-                    trainSize = trainSizeVal
-                    ENDdate = startDate + (2  * averageTradeDay) + i
-                    if ENDdate < dataset.shape[1]:
-                        numCluster = trainSize // 3
-                        freqRandom = trainSize // 3
-                        showcase = "trainVal"
-                        train = "TrainSize" + str(trainSize) + ".txt"
-                        print("TRAINING: StartDate: {0}, EndDate: {1}".format(startDate,ENDdate))
-                        # wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-                        # print("Minimum value in wealth array: " + str(wealth.min()))
-                        # print("Maximum value in wealth array: " + str(wealth.max()))
-                        # np.savetxt("./Data Sets/WEIRDK/" + market + "/TrainVal/-TRAINVAL-TrainSize-{0}-Start-{1}-End-{2}".format(trainSize, startDate, ENDdate),wealth)
-                        startDate = ENDdate + maxTrainSize - i
-                        oscilate += 1
-                    else:
-                        ENDdate = dataset.shape[1]
-                        startDate = dataset.shape[1]
-            else:
-                if ENDdate < dataset.shape[1] - 1 and startDate < dataset.shape[1]:
-                    trainSize = trainSizeVal
-                    # startDate = ENDdate
-                    ENDdate = startDate + 254 +i
-                    if ENDdate < dataset.shape[1] -1:
-                        print("TESTING: StartDate: {0}, EndDate: {1}".format(startDate,ENDdate))
-                        showcase = "testing"
-                        train = "TrainSize" + str(trainSize) + ".txt"
-                        # wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-                        # print("Minimum value in wealth array: " + str(wealth.min()))
-                        # print("Maximum value in wealth array: " + str(wealth.max()))
-                        wealth = np.array([-1,-1,-1])
-                        np.savetxt("./Data Sets/WEIRDK/" + market + "/Testing/" + "{0}-{1}-TrainSize-{2}".format(startDate, ENDdate, trainSize),wealth)
-                        startDate = ENDdate + maxTrainSize - i
-                        oscilate +=1
-                    else:
-                        ENDdate = dataset.shape[1]
-                else:
-                    ENDdate = dataset.shape[1]
-                    startDate = dataset.shape[1]
-    input("Ready to look at next day- window {0} ? \n".format(i+10))
-for i in problemPeriod:
-    print("error at day - startday,endDay: ".format(i[0], i[1]))
+
+
+windowSize = 5
+P = 10
+K = 5
+tol = 1e-2
+trainSizeSmall = 10
+trainSizeMedium = 110
+trainSizeLarge = 190
+
+
+
+numClusterSmall = trainSizeSmall // 3
+numClusterMedium = trainSizeMedium // 3
+numClusterLarge = trainSizeLarge // 3
+
+startDateCount = 2
+averageTradeDay = 254
+maxTrainSize = 200
+startDate = 200
+startDateSmall = startDate - trainSizeSmall
+startDateMedium = startDate - trainSizeMedium
+startDateLarge = startDate - trainSizeLarge
+ENDdate = startDate + (2 * averageTradeDay)
+count = 0
+
+wealth = runCorn(dates, dataset, windowSize, P, trainSizeSmall, trainSizeMedium, trainSizeLarge, numClusterSmall, numClusterMedium, numClusterLarge, startDateSmall, startDateMedium, startDateLarge, startDate)
+
+
+name = "mixed-model"
+np.savetxt("./Data Sets/TrainVal-start-{0}-end-{1}-{2}-sizes{3}-{4}-{5}.txt".format(startDate, ENDdate, market, name, trainSizeSmall, trainSizeMedium, trainSizeLarge),wealth)
