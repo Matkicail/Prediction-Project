@@ -3,10 +3,10 @@ from matplotlib import pyplot as plt
 
 
 data = []
-startDate = 2324
-endDate = 2832
+startDate = 2524
+endDate = 3032
 exchange = "JSE"
-for i in range(10, 80, 10):
+for i in range(10, 100, 10):
     temp = np.loadtxt("./" + exchange + "/TrainVal/-TRAINVAL-TrainSize-{0}-Start-{1}-End-{2}".format(i, startDate-i, endDate))
     data.append(temp)
 
