@@ -629,40 +629,40 @@ def runCorn(dates, data, windowSize, P, trainSizeSmall, trainSizeMedium, trainSi
                 expertDayEarlyLarge[x].weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
 
-        todayPortNumerator = np.zeros(numStocks)
-        todayPortDenom = np.zeros(numStocks)
+        todayPortNumeratorSmall = np.zeros(numStocks)
+        todayPortDenomSmall = np.zeros(numStocks)
         for x in topKSmall:
             x = int(x)
             if expertDayEarlySmall[x].weight != 0:
-                todayPortNumerator += expertDayEarlySmall[x].weight * (expertDayEarlySmall[x].wealthAchieved * expertDayEarlySmall[x].currPort)
-                todayPortDenom += expertDayEarlySmall[x].weight * expertDayEarlySmall[x].wealthAchieved
+                todayPortNumeratorSmall += expertDayEarlySmall[x].weight * (expertDayEarlySmall[x].wealthAchieved * expertDayEarlySmall[x].currPort)
+                todayPortDenomSmall += expertDayEarlySmall[x].weight * expertDayEarlySmall[x].wealthAchieved
             else:
                 pass
-        todayPortSmall = todayPortNumerator / todayPortDenom
+        todayPortSmall = todayPortNumeratorSmall / todayPortDenomSmall
 
-        todayPortNumerator = np.zeros(numStocks)
-        todayPortDenom = np.zeros(numStocks)
+        todayPortNumeratorMedium = np.zeros(numStocks)
+        todayPortDenomMedium = np.zeros(numStocks)
         for x in topKMedium:
             x = int(x)
             if expertDayEarlyMedium[x].weight != 0:
-                todayPortNumerator += expertDayEarlyMedium[x].weight * (expertDayEarlyMedium[x].wealthAchieved * expertDayEarlyMedium[x].currPort)
-                todayPortDenom += expertDayEarlyMedium[x].weight * expertDayEarlyMedium[x].wealthAchieved
+                todayPortNumeratorMedium += expertDayEarlyMedium[x].weight * (expertDayEarlyMedium[x].wealthAchieved * expertDayEarlyMedium[x].currPort)
+                todayPortDenomMedium += expertDayEarlyMedium[x].weight * expertDayEarlyMedium[x].wealthAchieved
             else:
                 pass
-        todayPortMedium = todayPortNumerator / todayPortDenom
+        todayPortMedium = todayPortNumeratorMedium / todayPortDenomMedium 
 
-        todayPortNumerator = np.zeros(numStocks)
-        todayPortDenom = np.zeros(numStocks)
+        todayPortNumeratorLarge = np.zeros(numStocks)
+        todayPortDenomLarge = np.zeros(numStocks)
         for x in topKLarge:
             x = int(x)
             if expertDayEarlyLarge[x].weight != 0:
-                todayPortNumerator += expertDayEarlyLarge[x].weight * (expertDayEarlyLarge[x].wealthAchieved * expertDayEarlyLarge[x].currPort)
-                todayPortDenom += expertDayEarlyLarge[x].weight * expertDayEarlyLarge[x].wealthAchieved
+                todayPortNumeratorLarge += expertDayEarlyLarge[x].weight * (expertDayEarlyLarge[x].wealthAchieved * expertDayEarlyLarge[x].currPort)
+                todayPortDenomLarge += expertDayEarlyLarge[x].weight * expertDayEarlyLarge[x].wealthAchieved
             else:
                 pass
-        todayPortLarge = todayPortNumerator / todayPortDenom
+        todayPortLarge = todayPortNumeratorLarge / todayPortDenomLarge 
 
-        val = day @ np.round((todayPortSmall + todayPortMedium + todayPortLarge), 7)/3
+        val = day @ ( (todayPortSmall + todayPortMedium + todayPortLarge) / 3 )
         if not math.isnan(val):
             totReturn = totReturn * val
         else:
@@ -880,7 +880,7 @@ P = 10
 K = 5
 tol = 1e-2
 trainSizeSmall = 10
-trainSizeMedium = 110
+trainSizeMedium = 120
 trainSizeLarge = 190
 
 

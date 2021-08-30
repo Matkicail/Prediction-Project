@@ -389,7 +389,7 @@ def findTopK(experts):
     return indicesBest
 
 # No reliance on dataframe data
-def runCorn(dates, data, windowSize, P):
+def runCorn(dates, data, windowSize, P, startDate, startDateEarly):
     """
     Run the CORN-K algorithm on the data set
     TODO CHANGE THIS TO WORK WITH THE NEW EXPERT ARRAY AND HOW IT IS A FLAT ARRAY
@@ -403,13 +403,12 @@ def runCorn(dates, data, windowSize, P):
     returns = np.array(())
     returns = np.append(returns,1)
 
-    for i in range(len(dates)):
+    for i in range(startDateEarly ,len(dates)):
         print("i is: " + str(i))
         # for each window size as based on the experts which is of length windowSize - 1
         for w in range((windowSize - 1)*P):
             experts[w].currPort = expertLearn(experts[w].windowSize, experts[w].corrThresh, i, data)
         # combine our experts' portfolios
-        portfolio = np.zeros((numStocks,))
         day = dayReturn(i, dates, data)
         #update the experts' individual wealths
         expertDayEarly = experts
@@ -429,28 +428,28 @@ def runCorn(dates, data, windowSize, P):
             if x in topK:
                 experts[x].weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
-
-        todayPortNumerator = np.zeros(numStocks)
-        todayPortDenom = np.zeros(numStocks)
-        for x in topK:
-            x = int(x)
-            if experts[x].weight != 0:
-                todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
-                todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+        if i >= startDate:
+            todayPortNumerator = np.zeros(numStocks)
+            todayPortDenom = np.zeros(numStocks)
+            for x in topK:
+                x = int(x)
+                if experts[x].weight != 0:
+                    todayPortNumerator += experts[x].weight * (experts[x].wealthAchieved * experts[x].currPort)
+                    todayPortDenom += experts[x].weight * experts[x].wealthAchieved
+                else:
+                    pass
+            todayPort = todayPortNumerator / todayPortDenom
+            val = day @ todayPort
+            if not math.isnan(val):
+                totReturn = totReturn * val
             else:
-                pass
-        todayPort = todayPortNumerator / todayPortDenom
-        val = day @ todayPort
-        if not math.isnan(val):
-            totReturn = totReturn * val
-        else:
-            print("NAN VALUE ENCOUNTERED AT DATE:" + str(i))
-        print("TOTAL RETURN AT CURRENT IS: " + str(totReturn))
-        returns = np.append(returns,totReturn)
+                print("NAN VALUE ENCOUNTERED AT DATE:" + str(i))
+            print("TOTAL RETURN AT CURRENT IS: " + str(totReturn))
+            returns = np.append(returns,totReturn)
 
         # if val == 0:
         #     print("VALUE IS 0 AT DAY" + str(i))
-        if i == 600:
+        if i == ENDDate:
             return returns
     return returns
 data = readDataSet()
@@ -474,30 +473,13 @@ uniformPort = np.ones((numStocks)) / numStocks
 windowSize = 5
 P = 10
 K = 5
-# for i in range(len(dates)- windowSize):
-#     market = marketWindow(i,i+windowSize,dates,dataset)
-    # print(i)
-    # print(market)
-# print("CHECKING EXPERT PORTFOLIO")
-# uniformExp = expertLearn(windowSize, 0, 2, dataset)
-# print("UNIFORM EXPERT")
-# print(uniformExp)
-# print("NORMAL EXPERT")
-# normalExpert = expertLearn(25, 0.66, 103, dataset)
-# print(normalExpert)
-# experts = initExperts(windowSize,numStocks,P)
-# printExperts(experts, windowSize, P)
-# print(type(experts))
-# print(type(experts[0]))
-# print(findTopK(experts))
-wealth = runCorn(dates,dataset,windowSize,P)
+
+exchange = input()
+startDateEarly = 608
+startDate = 908
+ENDDate = 1162
+
+wealth = runCorn(dates,dataset,windowSize,P, startDate, startDateEarly)
 print("Minimum value in wealth array: " + str(wealth.min()))
 print("Maximum value in wealth array: " + str(wealth.max()))
-np.savetxt("./Data Sets/CORNK/BIS600DAYCORNRETURNS.txt",wealth)
-# np.savetxt("./Data Sets/CORNK/BOV600DAYCORNRETURNS.txt",wealth)
-# np.savetxt("./Data Sets/CORNK/BOV800DAYCORNRETURNS.txt",wealth)
-# np.savetxt("./Data Sets/CORNK/EUR500DAYCORNRETURNS.txt",wealth)
-# np.savetxt("./Data Sets/CORNK/JSE600DAYCORNRETURNS.txt",wealth)
-# np.savetxt("./Data Sets/CORNK/temp.txt",wealth)
-# plt.plot(wealth)
-# plt.show()
+np.savetxt("./Data Sets/CORNK/{0}-Exchange-StartDate{1}-EndDate{2}.txt".format(exchange, startDate, ENDDate) ,wealth)

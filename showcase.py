@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 from datetime import date
 from re import I
 import numpy as np
@@ -52,7 +52,7 @@ bestStock = np.log(bestStock)
 
 numDays = endDate - startDate
 datesInterest = np.arange(start = 20, stop=endDate-startDate, step=10)
-specialShowCase10 = np.loadtxt("./2900-3200bulljseTrainSize10.txt")
+specialShowCase10 = np.loadtxt("./2900-3200bulljseTrainSize10.txt") 
 specialShowCase20 = np.loadtxt("./2900-3200bulljseTrainSize20.txt")
 specialShowCase30 = np.loadtxt("./2900-3200bulljseTrainSize30.txt")
 
@@ -82,7 +82,7 @@ for i in datesInterest:
     # plt.plot(weirdkReturns, label="Capital Gains Bot")
     plt.legend()
     plt.show()
-=======
+
 from datetime import date
 import numpy as np
 import pandas as pd
@@ -156,4 +156,4 @@ plt.plot(specialShowCase10[1:numDays], label="WEIRDK-10")
 # plt.plot(weirdkReturns, label="Capital Gains Bot")
 plt.legend()
 plt.show()
->>>>>>> 1b01d6c536f027c2eecf17ce4f790f307377dff4
+

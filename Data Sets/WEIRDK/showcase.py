@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 data = []
 startDate = 200
 endDate = 708
-exchange = "BIS"
+exchange = "JSE"
 sizes = [10, 110, 190]
 for i in sizes:
     temp = np.loadtxt("./" + exchange + "/TrainVal/-TRAINVAL-TrainSize-{0}-Start-{1}-End-{2}".format(i, startDate-i, endDate))
