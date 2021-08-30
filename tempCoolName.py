@@ -580,7 +580,7 @@ def runCorn(dates, data, windowSize, P, trainSizeSmall, trainSizeMedium, trainSi
         if i % (2*trainSizeLarge) == 0:
             numClusterLarge = 4
             marketWindow = data[:,i-trainSizeLarge-1:i-1]
-            dataPointsWindows, centroidsWindows = reAdjustKMeans(dataPointsWindows, marketWindow, centroidsWindowsMedium, trainSizeLarge, windowSize, P, numClusterLarge, i, tol)
+            dataPointsWindowsLarge, centroidsWindowsLarge = reAdjustKMeans(dataPointsWindowsLarge, marketWindow, centroidsWindowsLarge, trainSizeLarge, windowSize, P, numClusterLarge, i, tol)
             print("========READJUSTED LARGE-SIZE DATASET========")
 
         day = dayReturn(i, dates, data)
@@ -613,19 +613,19 @@ def runCorn(dates, data, windowSize, P, trainSizeSmall, trainSizeMedium, trainSi
         for x in topKSmall:
             # set their weights (TOP K)
             x = int(x)
-            if x in topKMedium:
+            if x in topKSmall:
                 expertDayEarlySmall[x].weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
-        for x in topKSmall:
+        for x in topKMedium:
             # set their weights (TOP K)
             x = int(x)
             if x in topKMedium:
                 expertDayEarlyMedium[x].weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
-        for x in topKSmall:
+        for x in topKLarge:
             # set their weights (TOP K)
             x = int(x)
-            if x in topKMedium:
+            if x in topKLarge:
                 expertDayEarlyLarge[x].weight = 1 / K
             # just not setting the weights for the others should acheive the same complexity
 
@@ -781,7 +781,7 @@ def updateClusters(centroids, dataPoints):
     diff = after - before
     noChange = len(np.where(diff != 0)[0])
     change = noChange / len(dataPoints)
-    print("Percentage changed: " + str(change*100) + "%")
+    # print("Percentage changed: " + str(change*100) + "%")
     return dataPoints, change
 
 def currentAssignments(dataPoints):
