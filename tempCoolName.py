@@ -661,8 +661,11 @@ def runCorn(dates, data, windowSize, P, trainSizeSmall, trainSizeMedium, trainSi
             else:
                 pass
         todayPortLarge = todayPortNumeratorLarge / todayPortDenomLarge 
-
-        val = day @ ( (todayPortSmall + todayPortMedium + todayPortLarge) / 3 )
+        smallAgentContribute = todayPortSmall /todayPortSmall.sum()
+        medAgentContribute = todayPortMedium / todayPortMedium.sum()
+        largeAgentContribute = todayPortLarge / todayPortLarge.sum()
+        # print("sums of agent: small to large ; {0}, {1}, {2}".format(smallAgentContribute.sum(), medAgentContribute.sum(), largeAgentContribute.sum()))
+        val = day @ ( (smallAgentContribute + medAgentContribute + largeAgentContribute) / 3 )
         if not math.isnan(val):
             totReturn = totReturn * val
         else:
@@ -891,15 +894,15 @@ numClusterLarge = trainSizeLarge // 3
 
 startDateCount = 2
 averageTradeDay = 254
-startDate = 200
+startDate = 708
 startDateSmall = startDate - trainSizeSmall
 startDateMedium = startDate - trainSizeMedium
 startDateLarge = startDate - trainSizeLarge
-ENDdate = startDate + (2 * averageTradeDay)
+ENDdate = 1162
 count = 0
 
 wealth = runCorn(dates, dataset, windowSize, P, trainSizeSmall, trainSizeMedium, trainSizeLarge, numClusterSmall, numClusterMedium, numClusterLarge, startDateSmall, startDateMedium, startDateLarge, startDate)
 
 
 name = "mixed-model"
-np.savetxt("./Data Sets/TrainVal-start-{0}-end-{1}-{2}-sizes{3}-{4}-{5}.txt".format(startDate, ENDdate, market, name, trainSizeSmall, trainSizeMedium, trainSizeLarge),wealth)
+np.savetxt("./Data Sets/Test-start-{0}-end-{1}-{2}-sizes{3}-{4}-{5}.txt".format(startDate, ENDdate, market, name, trainSizeSmall, trainSizeMedium, trainSizeLarge),wealth)
