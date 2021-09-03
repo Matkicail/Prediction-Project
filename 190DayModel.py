@@ -731,7 +731,7 @@ for size in trainSizes:
             tempMat = np.array((5, len(wealth)))
         name = "Simple-Model"
         np.savetxt("./Data Sets/Simple Model/{2}/{0}-startDate-{1}-endDate-{3}-run-number-{4}.txt".format(startDate, ENDdate, market, trainSize, i+1),wealth)   
-        tempMat[i,:] = wealth
+        tempMat[i,:] = wealth.reshape(1,(len(wealth)))
     meanReturn = np.mean(tempMat, axis = 0)
     varianceReturns = np.var(tempMat, axis = 0)
     np.savetxt("./Data Sets/Simple Model/{2}/{0}-startDate-{1}-endDate-{3}-MEAN.txt".format(startDate, ENDdate, market, trainSize, i+1),meanReturn) 
