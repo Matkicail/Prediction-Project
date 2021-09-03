@@ -714,9 +714,9 @@ numCluster = trainSize // 3
 
 startDateCount = 2
 averageTradeDay = 254
-originalStart = 2070
+originalStart = 908
 freqRandom = trainSize // 4
-ENDdate = 2324
+ENDdate = 1162
 trainSizes = [10, 120, 190]
 
 print(len(dates))
@@ -724,14 +724,17 @@ input("Continue ?\n")
 for size in trainSizes:
     trainSize = size
     startDate = originalStart - trainSize
-    tempMat = np.array(())
+    tempMat = np.zeros((5,1162-908 +2))
     for i in range(5):
+        print(tempMat.shape)
+        print(tempMat[i,:].shape)
         wealth = runCorn(dates,dataset,windowSize,P, trainSize, numCluster, startDate)
-        if i == 0:
-            tempMat = np.array((5, len(wealth)))
         name = "Simple-Model"
-        np.savetxt("./Data Sets/Simple Model/{2}/{0}-startDate-{1}-endDate-{3}-run-number-{4}.txt".format(startDate, ENDdate, market, trainSize, i+1),wealth)   
-        tempMat[i,:] = wealth.reshape(1,(len(wealth)))
+        np.savetxt("./Data Sets/Simple Model/{2}/{0}-startDate-{1}-endDate-{3}-run-number-{4}.txt".format(startDate, ENDdate, market, trainSize, i+1),wealth)
+        wealth = wealth.reshape(1, len(wealth))
+         
+        tempMat[i,:] = wealth
+
     meanReturn = np.mean(tempMat, axis = 0)
     varianceReturns = np.var(tempMat, axis = 0)
     np.savetxt("./Data Sets/Simple Model/{2}/{0}-startDate-{1}-endDate-{3}-MEAN.txt".format(startDate, ENDdate, market, trainSize, i+1),meanReturn) 
