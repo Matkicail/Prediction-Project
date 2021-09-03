@@ -894,15 +894,13 @@ numClusterLarge = trainSizeLarge // 3
 
 startDateCount = 2
 averageTradeDay = 254
-startDate = 708
+startDate = 1500
 startDateSmall = startDate - trainSizeSmall
 startDateMedium = startDate - trainSizeMedium
 startDateLarge = startDate - trainSizeLarge
-ENDdate = 1162
+ENDdate = 2324
 count = 0
 
-wealth = runCorn(dates, dataset, windowSize, P, trainSizeSmall, trainSizeMedium, trainSizeLarge, numClusterSmall, numClusterMedium, numClusterLarge, startDateSmall, startDateMedium, startDateLarge, startDate)
-
-
-name = "mixed-model"
-np.savetxt("./Data Sets/Test-start-{0}-end-{1}-{2}-sizes{3}-{4}-{5}.txt".format(startDate, ENDdate, market, name, trainSizeSmall, trainSizeMedium, trainSizeLarge),wealth)
+for i in range(5):
+    wealth = runCorn(dates, dataset, windowSize, P, trainSizeSmall, trainSizeMedium, trainSizeLarge, numClusterSmall, numClusterMedium, numClusterLarge, startDateSmall, startDateMedium, startDateLarge, startDate)
+    np.savetxt("./Data Sets/Mixed Model/{2}/StartDate-{0}-EndDate-{1}.txt".format(startDate, ENDdate, market, i+1),wealth)

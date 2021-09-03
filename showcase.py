@@ -11,8 +11,8 @@ from scipy import stats
 
 data = readDataSet()
 
-startDate = 2070
-endDate = 2324
+startDate = 908
+endDate = 1124
 numDays = endDate  -startDate
 logged = False
 bestStock, stockName = bestStockStrategy(data, startDate, endDate)
@@ -20,12 +20,12 @@ ubahPort = ubah(data, startDate, endDate)
 crpPort = UCRP(data, startDate, endDate)
 
 market = input("Input Market Name \n")
-
-cornReturns = np.loadtxt("./Data Sets/CORNK/{0}-Exchange-StartDate908-EndDate1162.txt".format(market))
-racornReturns = np.loadtxt("./Data Sets/RACORNK/{0}-Exchange-StartDate908-EndDate1162.txt".format(market))
-weirdkReturnsSmall= np.loadtxt("./Data Sets/Test-SIMPLE-start-898-end-1162-{0}-sizes-10.txt".format(market))
-weirdkReturnsMedium = np.loadtxt("./Data Sets/Test-SIMPLE-start-788-end-1162-{0}-sizes-120.txt".format(market))
-weirdKReturnsLarge = np.loadtxt("./Data Sets/Test-SIMPLE-start-718-end-1162-{0}-sizes-190.txt".format(market))
+# mixedModel = np.loadtxt("./Data Sets/MIXEDMODEL-Test-start-1500-end-2324-JSE-sizesmixed-model-10-120.txt")
+# cornReturns = np.loadtxt("./Data Sets/CORNK/{0}-Exchange-StartDate908-EndDate1162.txt".format(market))
+# racornReturns = np.loadtxt("./Data Sets/RACORNK/{0}-Exchange-StartDate908-EndDate1162.txt".format(market))
+# weirdkReturnsSmall= np.loadtxt("./Data Sets/Test-SIMPLE-start-898-end-1162-{0}-sizes-10.txt".format(market))
+# weirdkReturnsMedium = np.loadtxt("./Data Sets/Test-SIMPLE-start-788-end-1162-{0}-sizes-120.txt".format(market))
+# weirdKReturnsLarge = np.loadtxt("./Data Sets/Test-SIMPLE-start-718-end-1162-{0}-sizes-190.txt".format(market))
 # dricornReturns = np.loadtxt("./Data Sets/DRICORNK/" + name + "DAYDRICORNRETURNS.txt")
 # weirdkReturns= np.loadtxt("./Data Sets/WEIRDK/" + name + ".txt")
 
@@ -65,11 +65,14 @@ plt.ylabel("Total Return")
 plt.plot(bestStock[0:numDays], label=stockName)
 plt.plot(ubahPort[0:numDays], label="UBAH")
 plt.plot(crpPort[0:numDays], label="CRP")
-plt.plot(cornReturns[1:numDays], label="CORN")
-plt.plot(racornReturns[0:numDays], label="RACORN")
-plt.plot(weirdkReturnsSmall[1:numDays], label="10-Day")
-plt.plot(weirdkReturnsMedium[1:numDays], label="110-Day")
-plt.plot(weirdKReturnsLarge[1:numDays], label="190-Day")
+
+# plt.plot(mixedModel, label="Mixed Model")
+
+# plt.plot(cornReturns[1:numDays], label="CORN")
+# plt.plot(racornReturns[0:numDays], label="RACORN")
+# plt.plot(weirdkReturnsSmall[1:numDays], label="10-Day")
+# plt.plot(weirdkReturnsMedium[1:numDays], label="110-Day")
+# plt.plot(weirdKReturnsLarge[1:numDays], label="190-Day")
 plt.ylabel("Returns")
 plt.xlabel("# Trading Days")
 plt.legend()
