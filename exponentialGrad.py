@@ -1,4 +1,4 @@
-# This is an implementation of Exponential Gradient (an may be wrong)
+# This is an implementation of Exponential Gradient (an may be wrong as it is based on my understanding)
 # This is from D. P. Helmbold, R. E. Schapire, Y. Singer, and M. K. Warmuth, “On-line portfolio selection using multiplicative updates
 
 from datetime import date
