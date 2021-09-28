@@ -1,3 +1,6 @@
+# This is an implementation of Exponential Gradient (an may be wrong)
+# This is from D. P. Helmbold, R. E. Schapire, Y. Singer, and M. K. Warmuth, “On-line portfolio selection using multiplicative updates
+
 from datetime import date
 import numpy as np
 from numpy.lib import corrcoef
