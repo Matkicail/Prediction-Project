@@ -1,3 +1,7 @@
+# This code is a representation (and may be incorrect as it is my interpretation after reading the paper) of CORN-K which represents (CORrelation-driven Non-parametric learning)
+# This comes from :B. H. Li, S. C.H, and V. Gopalkrishnan, “Corn: Correlation-driven nonparametric learning approach for portfolio selection”
+
+
 from datetime import date
 import numpy as np
 from numpy.lib import corrcoef
