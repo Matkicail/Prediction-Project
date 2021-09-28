@@ -1,3 +1,5 @@
+# This is an implementation of RACORN-K - it is an implementation based on my understanding and may possibly be incorrect
+# This is algorithm is from : Y. Wang, D. Wang, and T. Zheng, “Racorn-k: risk-aversion pattern matching-based portfolio selection
 from datetime import date
 from typing import Sized
 import numpy as np
