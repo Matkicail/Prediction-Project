@@ -1,3 +1,5 @@
+# This is an implementation (and may be incorrect) of DRICORN-K (Dricorn-k: A dynamic risk correlation-driven non-parametric)
+# This is from the paper S. Sooklal, T. van Zyl, and A. Paskaramoorthy, “Dricorn-k: A dynamic risk correlation-driven non-parametric algorithm for online portfolio selection
 from cornk import ENDDate
 from datetime import date
 from typing import Sized
