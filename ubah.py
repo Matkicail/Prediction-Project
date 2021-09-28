@@ -1,3 +1,5 @@
+# This is an implementation of uniform buy and hold.
+
 from datetime import date
 import numpy as np
 import pandas as pd
