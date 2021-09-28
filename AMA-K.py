@@ -1,3 +1,7 @@
+# Original algorithm AMA-K (Aggressive Multi-Temporal Allocation), it is formed by adaptation of the CORN-K algorithm.
+# Further optimisation may be possible and should be done.
+# 
+
 from datetime import date
 import numpy as np
 from numpy.lib import corrcoef
